@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Pug-Sanctuary
-=======
 # 🐶 Pug Sanctuary.exe (Y2K Virtual Pet Game)
 
 ![Pug Sanctuary Desktop App](assets/pugs/moku_1.png)
@@ -57,10 +54,6 @@ To run Pug Sanctuary locally on your machine:
    ```bash
    python3 -m http.server 8080
    ```
-   Or using Node's `serve` package:
-   ```bash
-   npx serve .
-   ```
 
 3. **Open in Browser**:
    Navigate to `http://localhost:8080` in your web browser.
@@ -70,4 +63,3 @@ To run Pug Sanctuary locally on your machine:
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
->>>>>>> 98b5dd7 (Initial release of Pug Sanctuary Y2K virtual pet game with persistent auth)
