@@ -1,0 +1,708 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+
+:root {
+  --y2k-bg: #101528;
+  --win-bg: #c0c0c0;
+  --win-border-light: #ffffff;
+  --win-border-dark: #808080;
+  --win-border-darker: #404040;
+  --title-gradient-start: #000080;
+  --title-gradient-end: #1084d0;
+  --accent-pink: #ff66cc;
+  --accent-teal: #00f0ff;
+  --accent-yellow: #ffff00;
+  --accent-green: #33cc33;
+  --text-main: #000000;
+  --pixel-font-title: 'Press Start 2P', monospace;
+  --pixel-font-body: 'Silkscreen', monospace;
+  --pixel-font-mono: 'VT323', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--y2k-bg);
+  background-image: 
+    radial-gradient(#1e2945 15%, transparent 16%),
+    radial-gradient(#1e2945 15%, transparent 16%);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  font-family: var(--pixel-font-body);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Y2K Window Container */
+.y2k-window {
+  width: 980px;
+  max-width: 98vw;
+  background: var(--win-bg);
+  border-top: 3px solid var(--win-border-light);
+  border-left: 3px solid var(--win-border-light);
+  border-right: 3px solid var(--win-border-darker);
+  border-bottom: 3px solid var(--win-border-darker);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  position: relative;
+}
+
+/* Window Title Bar */
+.window-titlebar {
+  background: linear-gradient(90deg, var(--title-gradient-start), var(--title-gradient-end));
+  padding: 4px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  font-family: var(--pixel-font-title);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.title-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.win-btn {
+  width: 18px;
+  height: 18px;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-border-light);
+  border-left: 2px solid var(--win-border-light);
+  border-right: 2px solid var(--win-border-darker);
+  border-bottom: 2px solid var(--win-border-darker);
+  font-family: var(--pixel-font-title);
+  font-size: 9px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: #000;
+}
+
+.win-btn:active {
+  border-top: 2px solid var(--win-border-darker);
+  border-left: 2px solid var(--win-border-darker);
+  border-right: 2px solid var(--win-border-light);
+  border-bottom: 2px solid var(--win-border-light);
+}
+
+.win-btn-close {
+  background: #d94040;
+  color: #ffffff;
+}
+
+/* Status Bar Top */
+.sanctuary-status-bar {
+  background: #d8d8d8;
+  border-bottom: 2px solid var(--win-border-dark);
+  padding: 6px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  gap: 10px;
+}
+
+.status-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-badge {
+  background: #ffffff;
+  padding: 3px 8px;
+  border-top: 2px solid var(--win-border-darker);
+  border-left: 2px solid var(--win-border-darker);
+  border-right: 2px solid var(--win-border-light);
+  border-bottom: 2px solid var(--win-border-light);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+}
+
+.volume-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.volume-slider-group input[type=range] {
+  width: 70px;
+  cursor: pointer;
+}
+
+.level-progress-outer {
+  width: 90px;
+  height: 12px;
+  background: #555;
+  border: 1px solid #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.level-progress-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-pink), var(--accent-teal));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.currency-tag {
+  color: #006600;
+}
+
+/* Nav Tabs */
+.y2k-tabs {
+  display: flex;
+  background: var(--win-bg);
+  padding: 6px 6px 0 6px;
+  gap: 4px;
+  border-bottom: 2px solid var(--win-border-darker);
+}
+
+.y2k-tab {
+  padding: 6px 14px;
+  background: #a0a0a0;
+  border-top: 2px solid var(--win-border-light);
+  border-left: 2px solid var(--win-border-light);
+  border-right: 2px solid var(--win-border-darker);
+  border-bottom: none;
+  font-family: var(--pixel-font-body);
+  font-size: 11px;
+  cursor: pointer;
+  position: relative;
+  top: 2px;
+}
+
+.y2k-tab.active {
+  background: var(--win-bg);
+  top: 0px;
+  border-bottom: 2px solid var(--win-bg);
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Main Content Views */
+.tab-content {
+  display: none;
+  padding: 10px;
+  background: var(--win-bg);
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Sanctuary View Area */
+.sanctuary-stage-wrapper {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  background-image: url('assets/backgrounds/grass.png');
+  background-size: cover;
+  background-position: center bottom;
+  border-top: 3px solid var(--win-border-darker);
+  border-left: 3px solid var(--win-border-darker);
+  border-right: 3px solid var(--win-border-light);
+  border-bottom: 3px solid var(--win-border-light);
+  overflow: hidden;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Toolbar Controls */
+.sanctuary-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  background: #d4d4d4;
+  padding: 6px;
+  border-top: 2px solid var(--win-border-light);
+  border-left: 2px solid var(--win-border-light);
+  border-right: 2px solid var(--win-border-darker);
+  border-bottom: 2px solid var(--win-border-darker);
+  flex-wrap: wrap;
+}
+
+.tool-btn {
+  padding: 6px 12px;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-border-light);
+  border-left: 2px solid var(--win-border-light);
+  border-right: 2px solid var(--win-border-darker);
+  border-bottom: 2px solid var(--win-border-darker);
+  font-family: var(--pixel-font-body);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-btn:hover {
+  background: #e4e4e4;
+}
+
+.tool-btn.active {
+  border-top: 2px solid var(--win-border-darker);
+  border-left: 2px solid var(--win-border-darker);
+  border-right: 2px solid var(--win-border-light);
+  border-bottom: 2px solid var(--win-border-light);
+  background: var(--accent-teal);
+  font-weight: bold;
+}
+
+/* Pug Sticker Entity styling */
+.pug-entity {
+  position: absolute;
+  transform-origin: bottom center;
+  cursor: pointer;
+  transition: transform 0.05s linear;
+  filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));
+  z-index: 10;
+}
+
+/* Pug sticker inner img (only img gets scaleX flipped) */
+.pug-sticker-img {
+  display: block;
+  width: 110px;
+  height: auto;
+  pointer-events: none;
+}
+
+/* Floating Name Tag (UNFLIPPED, right side up) */
+.pug-name-badge {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--pixel-font-body);
+  font-size: 9px;
+  padding: 2px 6px;
+  border: 1px solid #000;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: bold;
+}
+
+.pug-name-badge.happy {
+  background: #ffffcc;
+  border-color: #ff00ff;
+}
+
+/* Thought Bubble for Needs */
+.pug-thought-bubble {
+  position: absolute;
+  top: -85px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68px;
+  height: 60px;
+  background-image: url('assets/items/thought_bubble.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 25;
+  filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6)) drop-shadow(0px 0px 3px #ffffff);
+  animation: bounceBubble 1.5s infinite ease-in-out;
+}
+
+.pug-thought-bubble .thought-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  image-rendering: pixelated;
+}
+
+@keyframes bounceBubble {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+/* Placed Game Entities & Furniture */
+.field-item {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 5;
+  cursor: pointer;
+}
+
+.field-item.food-bowl {
+  width: 48px;
+  height: 26px;
+  filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.5));
+}
+
+.field-item.food-bowl img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.field-item.toy-ball {
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0px 2px 1px rgba(0,0,0,0.4));
+}
+
+.field-item.toy-ball img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* Placed Buyable Furniture */
+.furniture-item {
+  border: 3px solid #000;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+}
+
+.furniture-item.ortho-bed {
+  width: 90px;
+  height: 45px;
+  background: #9c27b0;
+  border-radius: 12px;
+}
+
+.furniture-item.heart-rug {
+  width: 80px;
+  height: 40px;
+  background: #ff66cc;
+  border-radius: 50%;
+}
+
+.furniture-item.dog-house {
+  width: 95px;
+  height: 75px;
+  background: #795548;
+  border-radius: 4px;
+}
+
+.furniture-item.water-fountain {
+  width: 65px;
+  height: 55px;
+  background: #00bcd4;
+  border-radius: 50%;
+}
+
+/* Particle Effects */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  font-family: var(--pixel-font-body);
+  font-size: 11px;
+  font-weight: bold;
+  animation: floatUp 1.2s forwards ease-out;
+  z-index: 999;
+}
+
+.particle.heart {
+  color: #ff007f;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.particle.coin {
+  color: #ffcc00;
+  text-shadow: 1px 1px 0 #000;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.2);
+  }
+}
+
+/* Modals & Dialogs */
+.modal-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-window {
+  width: 520px;
+  max-width: 92vw;
+  background: var(--win-bg);
+  border-top: 3px solid var(--win-border-light);
+  border-left: 3px solid var(--win-border-light);
+  border-right: 3px solid var(--win-border-darker);
+  border-bottom: 3px solid var(--win-border-darker);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.y2k-input {
+  padding: 8px;
+  font-family: var(--pixel-font-body);
+  font-size: 12px;
+  background: #ffffff;
+  border-top: 2px solid var(--win-border-darker);
+  border-left: 2px solid var(--win-border-darker);
+  border-right: 2px solid var(--win-border-light);
+  border-bottom: 2px solid var(--win-border-light);
+  outline: none;
+}
+
+.pug-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.pug-select-card {
+  background: #ffffff;
+  border: 2px solid var(--win-border-dark);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.pug-select-card.selected {
+  border: 3px solid var(--accent-pink);
+  background: #fff0f7;
+}
+
+.pug-select-card img {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
+}
+
+.pug-card-name {
+  font-size: 10px;
+  margin-top: 6px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Shop Catalog Grid */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.shop-item-card {
+  background: #ffffff;
+  border-top: 2px solid var(--win-border-darker);
+  border-left: 2px solid var(--win-border-darker);
+  border-right: 2px solid var(--win-border-light);
+  border-bottom: 2px solid var(--win-border-light);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.shop-item-card.locked {
+  background: #e0e0e0;
+  opacity: 0.7;
+}
+
+.shop-item-title {
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.shop-item-desc {
+  font-size: 9px;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.shop-item-price {
+  font-size: 11px;
+  color: #006600;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* Bath Mini Game Screen */
+.bath-stage-wrapper {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  background-image: url('assets/backgrounds/bath_room.jpg');
+  background-size: cover;
+  background-position: center;
+  border: 3px solid var(--win-border-darker);
+  overflow: hidden;
+}
+
+.bath-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.8);
+  color: #ffffff;
+  padding: 8px 12px;
+  font-size: 11px;
+  border: 2px solid var(--accent-pink);
+  z-index: 50;
+}
+
+.bath-progress-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.bath-bar-outer {
+  width: 80px;
+  height: 10px;
+  background: #444;
+  border: 1px solid #fff;
+  overflow: hidden;
+}
+
+.bath-bar-inner {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-teal);
+  transition: width 0.1s linear;
+}
+
+.bath-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  cursor: none;
+}
+
+/* Walking Mini Game Screen */
+.walk-stage-wrapper {
+  position: relative;
+  width: 100%;
+  height: 440px;
+  background-image: url('assets/backgrounds/walk_path.jpg');
+  background-size: cover;
+  background-position: center;
+  border: 3px solid var(--win-border-darker);
+  overflow: hidden;
+}
+
+.walk-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.75);
+  color: #ffffff;
+  padding: 8px 12px;
+  font-size: 11px;
+  border: 2px solid var(--accent-teal);
+  z-index: 50;
+}
+
+.walk-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+/* Status Bar Bottom */
+.window-statusbar {
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-border-light);
+  padding: 4px 8px;
+  font-family: var(--pixel-font-mono);
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  color: #333;
+}

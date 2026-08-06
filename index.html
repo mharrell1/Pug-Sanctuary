@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pug Sanctuary.exe</title>
+  <meta name="description" content="A retro Y2K pixel aesthetic idle game inspired by Nintendogs and Old Dog Haven. Adopt, name, feed, groom, and walk cute pugs!">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Y2K Webpage Desktop Window Frame -->
+  <div class="y2k-window" id="main-window">
+    
+    <!-- Title Bar -->
+    <div class="window-titlebar">
+      <div class="title-text">
+        Pug Sanctuary.exe
+      </div>
+      <div class="title-controls">
+        <button class="win-btn" id="btn-min">_</button>
+        <button class="win-btn" id="btn-max">+</button>
+        <button class="win-btn win-btn-close" id="btn-close">X</button>
+      </div>
+    </div>
+
+    <!-- Status Bar Top -->
+    <div class="sanctuary-status-bar">
+      <div class="status-group">
+        <div class="status-badge" id="lvl-badge">LEVEL <span id="val-level">1</span></div>
+        <div class="level-progress-outer" title="Sanctuary EXP">
+          <div class="level-progress-inner" id="val-exp-bar"></div>
+        </div>
+      </div>
+      <div class="status-group">
+        <div class="status-badge currency-tag">PugBucks: <span id="val-coins">100</span> P$</div>
+        <div class="status-badge">HYGIENE: <span id="val-hygiene">100%</span></div>
+        <button class="tool-btn" id="btn-sfx-toggle">SFX: ON</button>
+        <div class="volume-slider-group status-badge">
+          <label for="volume-slider">VOL:</label>
+          <input type="range" id="volume-slider" min="0" max="100" value="25">
+        </div>
+      </div>
+    </div>
+
+    <!-- Retro Tab Bar -->
+    <div class="y2k-tabs">
+      <button class="y2k-tab active" data-tab="tab-sanctuary">SANCTUARY FIELD</button>
+      <button class="y2k-tab" data-tab="tab-adopt">ADOPT PUGS</button>
+      <button class="y2k-tab" data-tab="tab-shop">PUGMART SHOP</button>
+    </div>
+
+    <!-- Tab 1: Sanctuary Field -->
+    <div class="tab-content active" id="tab-sanctuary">
+      <!-- Grass Interactive Stage -->
+      <div class="sanctuary-stage-wrapper" id="sanctuary-stage">
+        <!-- Pug Entities, Food Bowls, Furniture, Thought Bubbles are rendered here -->
+      </div>
+
+      <!-- Field Action Toolbar -->
+      <div class="sanctuary-toolbar">
+        <button class="tool-btn" data-tool="BOWL">PLACE FOOD BOWL</button>
+        <button class="tool-btn" data-tool="TOY">PLACE TOY</button>
+        <button class="tool-btn" id="btn-start-bath-active">GIVE PUG A BATH</button>
+        <button class="tool-btn" id="btn-start-walk-active">GO FOR A WALK</button>
+      </div>
+    </div>
+
+    <!-- Tab 2: Adopt Pugs -->
+    <div class="tab-content" id="tab-adopt">
+      <div class="modal-body">
+        <h3>ADOPT A NEW PUG FOR YOUR SANCTUARY</h3>
+        <p style="font-size: 10px; color: #444;">Select a pug sticker template, enter a custom name, and welcome them home!</p>
+        
+        <div class="form-group">
+          <label>CHOOSE PUG TEMPLATE:</label>
+          <div class="pug-select-grid">
+            <div class="pug-select-card selected" data-pose="moku_1">
+              <img src="assets/pugs/moku_1.png" alt="Pug Pose 1">
+              <div class="pug-card-name">LOOKING UP</div>
+            </div>
+            <div class="pug-select-card" data-pose="moku_2">
+              <img src="assets/pugs/moku_2.png" alt="Pug Pose 2">
+              <div class="pug-card-name">HAPPY FRONT</div>
+            </div>
+            <div class="pug-select-card" data-pose="moku_3">
+              <img src="assets/pugs/moku_3.png" alt="Pug Pose 3">
+              <div class="pug-card-name">PLAYFUL WALK</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="adopt-name-input">GIVE YOUR PUG A NAME:</label>
+          <input type="text" id="adopt-name-input" class="y2k-input" value="Moku" maxlength="15">
+        </div>
+
+        <button class="tool-btn" id="btn-confirm-adopt" style="background: var(--accent-pink); font-weight: bold; padding: 10px;">CONFIRM ADOPTION</button>
+      </div>
+    </div>
+
+    <!-- Tab 3: PugMart Shop -->
+    <div class="tab-content" id="tab-shop">
+      <div class="modal-body">
+        <h3>PUGMART CATALOG v1.0</h3>
+        <p style="font-size: 10px; color: #444;">Level up your sanctuary rank to unlock premium treats, toys, grooming supplies, and furniture!</p>
+        
+        <div class="shop-grid" id="shop-items-container">
+          <!-- Dynamically populated from JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="window-statusbar">
+      <span id="status-message">READY - Sanctuary running smoothly.</span>
+      <span>SYSTEM: OK</span>
+    </div>
+  </div>
+
+  <!-- Pug Profile Inspector Modal -->
+  <div class="modal-overlay" id="inspector-modal">
+    <div class="modal-window">
+      <div class="window-titlebar">
+        <div class="title-text">PUG PROFILE INSPECTOR</div>
+        <button class="win-btn win-btn-close" id="btn-close-inspector">X</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 14px; align-items: center;">
+          <img id="inspect-img" src="assets/pugs/moku_3.png" style="width: 100px; height: auto;" alt="Pug">
+          <div style="flex: 1;">
+            <div class="form-group">
+              <label>RENAME PUG:</label>
+              <input type="text" id="inspect-name-input" class="y2k-input" value="Moku">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>STATS:</label>
+          <div style="font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div>HUNGER: <span id="inspect-val-hunger">80%</span></div>
+            <div>HAPPINESS: <span id="inspect-val-happy">70%</span></div>
+            <div>ENERGY: <span id="inspect-val-energy">90%</span></div>
+            <div>HYGIENE: <span id="inspect-val-hygiene">85%</span></div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="tool-btn" id="btn-inspect-feed">FEED TREAT</button>
+          <button class="tool-btn" id="btn-inspect-pet">PET PUG</button>
+          <button class="tool-btn" id="btn-inspect-bath">GIVE A BATH</button>
+          <button class="tool-btn" id="btn-inspect-walk">TAKE ON WALK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frog Self-Care Inspired Bathing Mini-Game Modal -->
+  <div class="modal-overlay" id="bath-modal">
+    <div class="modal-window" style="width: 840px;">
+      <div class="window-titlebar">
+        <div class="title-text">PUG SHOWER & BATHING MINI-GAME</div>
+        <button class="win-btn win-btn-close" id="btn-close-bath">X</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div class="bath-stage-wrapper" id="bath-stage-wrapper">
+          <div class="bath-hud">
+            <div id="bath-instruction">STEP 1: LATHER PUG WITH SHAMPOO BOTTLE!</div>
+            <div class="bath-progress-box">
+              <button class="tool-btn" id="btn-bath-shampoo">SHAMPOO</button>
+              <button class="tool-btn" id="btn-bath-shower">SHOWER</button>
+              <div>SOAP: <div class="bath-bar-outer"><div class="bath-bar-inner" id="bath-soap-bar"></div></div></div>
+              <div>RINSE: <div class="bath-bar-outer"><div class="bath-bar-inner" id="bath-rinse-bar"></div></div></div>
+            </div>
+          </div>
+          <canvas class="bath-canvas" id="bath-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nintendogs Leash Walking Mini-Game Modal -->
+  <div class="modal-overlay" id="walk-modal">
+    <div class="modal-window" style="width: 920px;">
+      <div class="window-titlebar">
+        <div class="title-text">NINTENDOGS LEASH WALK - PARK ROUTE</div>
+        <button class="win-btn win-btn-close" id="btn-close-walk">X</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div class="walk-stage-wrapper" id="walk-stage-wrapper">
+          <div class="walk-hud">
+            <div>BONES: <span id="walk-coin-val">0 P$</span></div>
+            <div>DISTANCE: <span id="walk-dist-val">0 / 500 m</span></div>
+            <div>UP / DOWN ARROWS TO SWITCH LANES</div>
+          </div>
+          <canvas class="walk-canvas" id="walk-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pug Picker Modal (Bath / Walk selection) -->
+  <div class="modal-overlay" id="pug-picker-modal">
+    <div class="modal-window" style="width: 420px;">
+      <div class="window-titlebar">
+        <div class="title-text" id="pug-picker-title">CHOOSE A PUG</div>
+        <button class="win-btn win-btn-close" id="btn-close-pug-picker">X</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 10px; color: #555; margin-bottom: 12px;">SELECT WHICH PUG TO TAKE CARE OF:</p>
+        <div id="pug-picker-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    </div>
+  </div>
+<!-- Login Modal -->
+<div class="modal-overlay active" id="login-modal">
+  <div class="modal-window">
+    <div class="window-titlebar">
+      <div class="title-text">Sign In</div>
+      <button class="win-btn win-btn-close" id="btn-close-login">X</button>
+    </div>
+    <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+      <input type="text" id="email-input" placeholder="Username" class="y2k-input" />
+      <input type="password" id="password-input" placeholder="Password" class="y2k-input" />
+      <div id="auth-error-msg" style="color: #ff3333; font-size: 10px; min-height: 14px; text-align: center; max-width: 200px;"></div>
+      <button class="tool-btn" id="email-signin-btn">Sign In</button>
+      <button class="tool-btn" id="email-signup-btn">Sign Up</button>
+    </div>
+  </div>
+</div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- JS Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/sfx.js"></script>
+  <script src="js/sanctuary.js"></script>
+  <script src="js/bath-game.js"></script>
+  <script src="js/walking-game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
