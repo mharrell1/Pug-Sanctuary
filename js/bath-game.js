@@ -9,12 +9,15 @@ class BathMiniGame {
     this.canvas = document.getElementById('bath-canvas');
     this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
 
-    this.tool = 'SHAMPOO'; // SHAMPOO or SHOWER
+    this.tool = 'SHAMPOO'; // SHAMPOO, SHOWER, or BRUSH
     this.soapProgress = 0; // 0 - 100
     this.rinseProgress = 0; // 0 - 100
+    this.brushProgress = 0; // 0 - 100 (if brush owned)
+    this.hasBrush = false; // set when bath starts
 
     this.bubbles = []; // Overlay bubble positions { x, y, size, rotation }
     this.waterParticles = [];
+    this.sparkParticles = [];
 
     this.mouseX = 300;
     this.mouseY = 200;
@@ -26,6 +29,9 @@ class BathMiniGame {
 
     this.showerImg = new Image();
     this.showerImg.src = 'assets/items/showerhead.png';
+
+    this.brushImg = new Image();
+    this.brushImg.src = 'assets/items/soft_brush.png';
 
     this.bubbleImg = new Image();
     this.bubbleImg.src = 'assets/items/bubble.png';
@@ -70,8 +76,15 @@ class BathMiniGame {
     this.tool = 'SHAMPOO';
     this.soapProgress = 0;
     this.rinseProgress = 0;
+    this.brushProgress = 0;
     this.bubbles = [];
     this.waterParticles = [];
+    this.sparkParticles = [];
+
+    // Check if player owns the pet brush
+    this.hasBrush = !!(window.app &&
+      window.app.inventory.accessories &&
+      window.app.inventory.accessories.includes('soft_brush'));
 
     this.initCanvas();
     document.getElementById('bath-modal').classList.add('active');
@@ -85,15 +98,22 @@ class BathMiniGame {
 
     if (this.pug) {
       this.pug.hygiene = 100;
-      this.pug.happiness = Math.min(100, this.pug.happiness + 30);
-      this.pug.isSparkling = true; // Make pug extra bright & shiny after bath!
+      // Extra happiness bonus if brush step was done
+      const happinessBonus = this.hasBrush ? 45 : 30;
+      this.pug.happiness = Math.min(100, this.pug.happiness + happinessBonus);
+      this.pug.isSparkling = true;
       this.pug.updateSpriteSrc();
     }
 
     if (window.app) {
-      window.app.addCurrency(35);
-      window.app.addExp(25);
-      window.app.showNotification("BATH COMPLETE! PUG IS SPARKLING CLEAN!");
+      const coinBonus = this.hasBrush ? 50 : 35;
+      const expBonus = this.hasBrush ? 35 : 25;
+      window.app.addCurrency(coinBonus);
+      window.app.addExp(expBonus);
+      const msg = this.hasBrush
+        ? 'BATH + BRUSHING COMPLETE! EXTRA FLUFFY PUG!'
+        : 'BATH COMPLETE! PUG IS SPARKLING CLEAN!';
+      window.app.showNotification(msg);
     }
 
     if (window.sfx) window.sfx.playLevelUp();
@@ -125,6 +145,13 @@ class BathMiniGame {
           });
         }
         if (window.sfx && Math.random() < 0.15) window.sfx.playCrunch();
+
+        // Auto-advance tool when done
+        if (this.soapProgress >= 100) {
+          this.tool = 'SHOWER';
+          if (window.sfx) window.sfx.playClick();
+        }
+
       } else if (this.tool === 'SHOWER' && this.soapProgress >= 80 && this.rinseProgress < 100) {
         this.rinseProgress = Math.min(100, this.rinseProgress + 1.8);
 
@@ -143,31 +170,66 @@ class BathMiniGame {
           });
         }
         if (window.sfx && Math.random() < 0.15) window.sfx.playScoop();
+
+        // Auto-advance to brush if owned
+        if (this.rinseProgress >= 100) {
+          if (this.hasBrush) {
+            this.tool = 'BRUSH';
+            if (window.sfx) window.sfx.playClick();
+          } else {
+            this.endBath();
+          }
+        }
+
+      } else if (this.tool === 'BRUSH' && this.hasBrush && this.rinseProgress >= 100 && this.brushProgress < 100) {
+        this.brushProgress = Math.min(100, this.brushProgress + 1.2);
+
+        // Spawn sparkle particles as brush strokes
+        if (Math.random() < 0.6) {
+          this.sparkParticles.push({
+            x: this.mouseX + (Math.random() - 0.5) * 60,
+            y: this.mouseY + (Math.random() - 0.5) * 40,
+            vx: (Math.random() - 0.5) * 3,
+            vy: -2 - Math.random() * 3,
+            life: 20,
+            size: 4 + Math.random() * 6,
+            color: `hsl(${200 + Math.random() * 60}, 100%, 75%)`
+          });
+        }
+        if (window.sfx && Math.random() < 0.12) window.sfx.playCrunch();
+
+        if (this.brushProgress >= 100) {
+          this.endBath();
+        }
       }
 
       this.updateHUD();
-
-      if (this.soapProgress >= 100 && this.rinseProgress >= 100) {
-        this.endBath();
-      }
     }
   }
 
   updateHUD() {
     const soapEl = document.getElementById('bath-soap-bar');
     const rinseEl = document.getElementById('bath-rinse-bar');
+    const brushBarEl = document.getElementById('bath-brush-bar');
+    const brushRowEl = document.getElementById('bath-brush-row');
     const instructionEl = document.getElementById('bath-instruction');
 
     if (soapEl) soapEl.style.width = `${Math.floor(this.soapProgress)}%`;
     if (rinseEl) rinseEl.style.width = `${Math.floor(this.rinseProgress)}%`;
+    if (brushBarEl) brushBarEl.style.width = `${Math.floor(this.brushProgress)}%`;
+
+    // Show brush row only if player owns brush
+    if (brushRowEl) brushRowEl.style.display = this.hasBrush ? 'flex' : 'none';
 
     if (instructionEl) {
       if (this.soapProgress < 100) {
-        instructionEl.innerText = "STEP 1: LATHER PUG WITH SHAMPOO BOTTLE!";
+        instructionEl.innerText = 'STEP 1: LATHER PUG WITH SHAMPOO BOTTLE!';
       } else if (this.rinseProgress < 100) {
-        instructionEl.innerText = "STEP 2: RINSE SOAP WITH SHOWER HEAD!";
+        instructionEl.innerText = 'STEP 2: RINSE SOAP WITH SHOWER HEAD!';
+      } else if (this.hasBrush && this.brushProgress < 100) {
+        instructionEl.innerText = 'STEP 3: BRUSH YOUR PUG WITH THE PET BRUSH!';
       } else {
-        instructionEl.innerText = "BATH COMPLETE! PERFECTLY CLEAN!";
+        instructionEl.innerText = 'BATH COMPLETE! PERFECTLY CLEAN!';
       }
     }
   }
@@ -187,6 +249,15 @@ class BathMiniGame {
       p.life--;
       if (p.life <= 0) {
         this.waterParticles.splice(idx, 1);
+      }
+    });
+
+    this.sparkParticles.forEach((p, idx) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      if (p.life <= 0) {
+        this.sparkParticles.splice(idx, 1);
       }
     });
   }
@@ -228,9 +299,24 @@ class BathMiniGame {
       this.ctx.fillRect(w.x, w.y, 4, 10);
     });
 
-    // 4. Render Transparent Active Tool (Shampoo bottle or Shower head)
-    const activeImg = this.tool === 'SHAMPOO' ? this.shampooImg : this.showerImg;
-    if (activeImg.complete) {
+    // 4. Render Sparkle Particles (brush step)
+    this.sparkParticles.forEach(s => {
+      this.ctx.save();
+      this.ctx.globalAlpha = s.life / 20;
+      this.ctx.fillStyle = s.color;
+      this.ctx.beginPath();
+      this.ctx.arc(s.x, s.y, s.size / 2, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.restore();
+    });
+
+    // 5. Render Transparent Active Tool
+    let activeImg = null;
+    if (this.tool === 'SHAMPOO') activeImg = this.shampooImg;
+    else if (this.tool === 'SHOWER') activeImg = this.showerImg;
+    else if (this.tool === 'BRUSH') activeImg = this.brushImg;
+
+    if (activeImg && activeImg.complete) {
       this.ctx.drawImage(activeImg, this.mouseX - 35, this.mouseY - 35, 70, 70);
     }
   }

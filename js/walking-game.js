@@ -10,7 +10,7 @@ class WalkingMiniGame {
     this.ctx     = this.canvas ? this.canvas.getContext('2d') : null;
 
     this.distanceCovered = 0;
-    this.targetDistance  = 400;
+    this.targetDistance  = 1200;
     this.coinsEarned     = 0;
     this.bonesCollected  = 0;
 
@@ -34,9 +34,10 @@ class WalkingMiniGame {
     this.BG_SPEED  = 2.8;
 
     // Images
-    this.pugImg  = null;
-    this.boneImg = null;
-    this.bgImg   = null;
+    this.pugImg     = null;
+    this.boneImg    = null;
+    this.bgImg      = null;
+    this.hydrantImg = null;
 
     this._upHeld   = false;
     this._downHeld = false;
@@ -58,6 +59,15 @@ class WalkingMiniGame {
 
     this.boneImg = new Image();
     this.boneImg.src = 'assets/items/walk_bone.png';
+
+    this.hydrantImg = new Image();
+    this.hydrantImg.src = 'assets/items/fire_hydrant.png';
+
+    this.heartFilledImg = new Image();
+    this.heartFilledImg.src = 'assets/items/heart_filled.png?v=2';
+
+    this.heartEmptyImg = new Image();
+    this.heartEmptyImg.src = 'assets/items/heart_empty.png';
   }
 
   initEvents() {
@@ -83,6 +93,7 @@ class WalkingMiniGame {
     this.bgScrollX       = 0;
     this.itemTimer       = 80;
     this.items           = [];
+    this.lives           = 3;
     this._upHeld      = false;
     this._downHeld    = false;
 
@@ -138,13 +149,16 @@ class WalkingMiniGame {
 
   spawnItem() {
     const cw = this.canvas.width;
-    // Spawn at a random Y across the full vertical play range
-    const spawnY = this.pugMinY + Math.random() * (this.pugMaxY - this.pugMinY);
+    const isHydrant = Math.random() > 0.8;
+    const type = isHydrant ? 'HYDRANT' : 'BONE';
+    
+    // Fire hydrants only spawn on the ground (pugMaxY). Bones spawn randomly in the air or ground.
+    const spawnY = isHydrant ? this.pugMaxY : (this.pugMinY + Math.random() * (this.pugMaxY - this.pugMinY));
+    
     this.items.push({
       x:    cw + 50,
       y:    spawnY,
-      type: Math.random() < 0.8 ? 'BONE' : 'DOG',
-      name: ['Barnaby','Biscuit','Cheddar'][Math.floor(Math.random() * 3)],
+      type: type,
       done: false,
     });
   }
@@ -176,7 +190,12 @@ class WalkingMiniGame {
     // Collision
     this.items.forEach(item => {
       if (item.done) return;
-      if (Math.abs(item.x - this.pugX) < 42 && Math.abs(item.y - this.pugY) < 28) {
+      
+      // Generous hitbox — counts if pug is standing over or overlapping the item
+      const hitX = item.type === 'BONE' ? 90 : 48;
+      const hitY = item.type === 'BONE' ? 70 : 36;
+
+      if (Math.abs(item.x - this.pugX) < hitX && Math.abs(item.y - this.pugY) < hitY) {
         item.done = true;
         if (item.type === 'BONE') {
           this.bonesCollected++;
@@ -184,9 +203,13 @@ class WalkingMiniGame {
           if (window.sfx) window.sfx.playCoin();
           if (window.app) window.app.showNotification('+BONE! +20 P$');
         } else {
-          if (window.sfx) window.sfx.playBark();
-          if (window.app) window.app.showNotification(`MET ${item.name.toUpperCase()}!`);
-          this.coinsEarned += 5;
+          if (window.sfx) window.sfx.playScoop(); // Play a thud or scoop sound
+          if (window.app) window.app.showNotification(`HIT A HYDRANT! -1 HEART!`);
+          if (this.pug) this.pug.energy = Math.max(0, this.pug.energy - 10);
+          this.lives--;
+          if (this.lives <= 0) {
+            this.endWalk();
+          }
         }
       }
     });
@@ -213,11 +236,20 @@ class WalkingMiniGame {
       const nh = this.bgImg.naturalHeight;
       const scale   = ch / nh;
       const scaledW = nw * scale;
-      const offset  = this.bgScrollX % scaledW;
+      const offset  = this.bgScrollX % (scaledW * 2); // Modulo by 2 widths to keep the alternating pattern consistent
 
       // Tile enough copies to fill the canvas width
       for (let i = -1; i <= Math.ceil(cw / scaledW) + 1; i++) {
-        ctx.drawImage(this.bgImg, i * scaledW - offset, 0, scaledW, ch);
+        const xPos = i * scaledW - offset;
+        ctx.save();
+        if (Math.abs(i) % 2 === 1) {
+          ctx.translate(xPos + scaledW, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(this.bgImg, 0, 0, scaledW, ch);
+        } else {
+          ctx.drawImage(this.bgImg, xPos, 0, scaledW, ch);
+        }
+        ctx.restore();
       }
     } else {
       ctx.fillStyle = '#5ec8e5'; ctx.fillRect(0, 0, cw, ch * 0.55);
@@ -243,33 +275,71 @@ class WalkingMiniGame {
           ctx.beginPath(); ctx.arc(sx + 14, sy, 7, 0, Math.PI * 2); ctx.fill();
         }
       } else {
-        // Dog — simple golden silhouette
-        ctx.fillStyle = '#e8a04a';
-        ctx.fillRect(sx - 18, sy - 24, 36, 24);
-        ctx.beginPath(); ctx.ellipse(sx + 18, sy - 16, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#553300'; ctx.lineWidth = 1.5;
-        ctx.strokeRect(sx - 18, sy - 24, 36, 24);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
-        ctx.fillText(item.name, sx, sy - 28);
+        // Fire Hydrant
+        if (this.hydrantImg && this.hydrantImg.complete && this.hydrantImg.naturalWidth > 0) {
+          const hH = 56; // 25% larger than 45
+          const hW = Math.round(hH * this.hydrantImg.naturalWidth / this.hydrantImg.naturalHeight);
+          
+          // Shadow on the ground
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, 14, 4, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Draw hydrant anchored at the bottom (sy)
+          ctx.drawImage(this.hydrantImg, sx - hW / 2, sy - hH, hW, hH);
+        } else {
+          // Fallback simple red block
+          ctx.fillStyle = '#cc0000';
+          ctx.fillRect(sx - 10, sy - 28, 20, 28);
+        }
       }
     });
 
     // ── 3. Leash ──
-    const leashEndX = this.pugX + 12;
-    const leashEndY = pugDrawY - 26;
-    const handX = this.pugX + 52;
-    const handY = pugDrawY - 72;
+    const leashEndX = this.pugX + 20;
+    const leashEndY = pugDrawY - 45;
+    const handX = this.pugX + 80;
+    const handY = pugDrawY - 90;
 
     ctx.beginPath();
     ctx.moveTo(handX, handY);
-    ctx.quadraticCurveTo(this.pugX + 38, pugDrawY - 46, leashEndX, leashEndY);
+    ctx.quadraticCurveTo(this.pugX + 50, pugDrawY - 60, leashEndX, leashEndY);
     ctx.strokeStyle = '#cc2200'; ctx.lineWidth = 2; ctx.stroke();
 
     ctx.fillStyle = '#881100';
     ctx.beginPath(); ctx.ellipse(handX, handY, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
 
-    // ── 4. Pug sprite ──
-    const pugW = 64, pugH = 64;
+    // ── 5. Hearts (Lives) & Bones ──
+    const heartW = 24;
+    const heartH = 24;
+    
+    // We want hearts + bones text centered together. 
+    // Hearts total width is ~92px. Text width is ~80px. Total ~180px.
+    const blockWidth = (3 * heartW + 20) + 90;
+    const startX = (cw / 2) - (blockWidth / 2);
+    
+    for (let i = 0; i < 3; i++) {
+      const img = i < this.lives ? this.heartFilledImg : this.heartEmptyImg;
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, startX + i * (heartW + 10), 55, heartW, heartH);
+      }
+    }
+    
+    // Draw bones count next to hearts
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'left';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#000';
+    
+    const boneTextX = startX + 3 * (heartW + 10) + 10;
+    const boneTextY = 72; // Align vertically with hearts
+    ctx.strokeText(`BONES: ${this.bonesCollected}`, boneTextX, boneTextY);
+    ctx.fillText(`BONES: ${this.bonesCollected}`, boneTextX, boneTextY);
+
+    // ── 6. Pug sprite ──
+    const pugW = 110, pugH = 110;
     if (this.pugImg && this.pugImg.complete && this.pugImg.naturalWidth > 0) {
       ctx.save();
       ctx.translate(this.pugX, pugDrawY);
@@ -288,11 +358,6 @@ class WalkingMiniGame {
     ctx.fillStyle = '#44ee88';          ctx.fillRect(10, ch - 14, (cw - 20) * progress, 8);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
     ctx.strokeRect(10, ch - 14, cw - 20, 8);
-
-    // ── 7. Controls hint ──
-    ctx.fillStyle = 'rgba(0,10,40,0.65)'; ctx.fillRect(cw / 2 - 140, 5, 280, 18);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('UP / DOWN ARROWS TO SWITCH LANES', cw / 2, 17);
   }
 }
 

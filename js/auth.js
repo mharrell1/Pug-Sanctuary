@@ -85,16 +85,37 @@ window.auth = {
   // Save the whole game state for the current user
   saveState(state) {
     if (!this.user) return;
+    // Always save a local user-specific backup first
+    localStorage.setItem('pug_sanctuary_save_' + this.user.uid, JSON.stringify(state));
     db.collection('users').doc(this.user.uid).set(state, { merge: true })
-      .then(() => console.log('Game state saved'))
+      .then(() => console.log('Game state saved to cloud'))
       .catch(err => console.error('Save error:', err));
   },
   // Load saved state (returns a promise)
   loadState() {
     if (!this.user) return Promise.resolve(null);
     return db.collection('users').doc(this.user.uid).get()
-      .then(doc => doc.exists ? doc.data() : null)
-      .catch(err => { console.error('Load error:', err); return null; });
+      .then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          // Update the local user-specific backup with latest cloud data
+          localStorage.setItem('pug_sanctuary_save_' + this.user.uid, JSON.stringify(data));
+          return data;
+        }
+        return null;
+      })
+      .catch(err => {
+        console.warn('Load error, falling back to local user backup:', err);
+        const localSave = localStorage.getItem('pug_sanctuary_save_' + this.user.uid);
+        if (localSave) {
+          try {
+            return JSON.parse(localSave);
+          } catch (e) {
+            console.error('Error parsing local user backup:', e);
+          }
+        }
+        return null;
+      });
   }
 };
 
@@ -139,6 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           window.auth.user = JSON.parse(savedUserStr);
           loginModal.classList.remove('active');
+          if (window.app && typeof window.app.loadGameState === 'function') {
+            window.auth.loadState().then(saved => {
+              if (saved) window.app.loadGameState(saved);
+            });
+          }
         } catch (e) {
           loginModal.classList.add('active');
         }

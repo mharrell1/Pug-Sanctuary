@@ -59,10 +59,11 @@
 
       <!-- Field Action Toolbar -->
       <div class="sanctuary-toolbar">
-        <button class="tool-btn" data-tool="BOWL">PLACE FOOD BOWL</button>
+        <button class="tool-btn" data-tool="BOWL">PLACE FOOD</button>
         <button class="tool-btn" data-tool="TOY">PLACE TOY</button>
         <button class="tool-btn" id="btn-start-bath-active">GIVE PUG A BATH</button>
         <button class="tool-btn" id="btn-start-walk-active">GO FOR A WALK</button>
+        <button class="tool-btn" id="btn-open-inventory">INVENTORY</button>
       </div>
     </div>
 
@@ -102,7 +103,7 @@
     <!-- Tab 3: PugMart Shop -->
     <div class="tab-content" id="tab-shop">
       <div class="modal-body">
-        <h3>PUGMART CATALOG v1.0</h3>
+        <h3>PUGMART CATALOG</h3>
         <p style="font-size: 10px; color: #444;">Level up your sanctuary rank to unlock premium treats, toys, grooming supplies, and furniture!</p>
         
         <div class="shop-grid" id="shop-items-container">
@@ -172,6 +173,7 @@
               <button class="tool-btn" id="btn-bath-shower">SHOWER</button>
               <div>SOAP: <div class="bath-bar-outer"><div class="bath-bar-inner" id="bath-soap-bar"></div></div></div>
               <div>RINSE: <div class="bath-bar-outer"><div class="bath-bar-inner" id="bath-rinse-bar"></div></div></div>
+              <div id="bath-brush-row" style="display:none;">BRUSH: <div class="bath-bar-outer"><div class="bath-bar-inner" id="bath-brush-bar" style="background: #7ec8e3;"></div></div></div>
             </div>
           </div>
           <canvas class="bath-canvas" id="bath-canvas"></canvas>
@@ -189,10 +191,9 @@
       </div>
       <div class="modal-body" style="padding: 0;">
         <div class="walk-stage-wrapper" id="walk-stage-wrapper">
-          <div class="walk-hud">
-            <div>BONES: <span id="walk-coin-val">0 P$</span></div>
+          <div class="walk-hud" style="justify-content: center; gap: 30px;">
+            <div style="color: #ffb6c1; text-shadow: 1px 1px 0 #000;">OBJECTIVE: CATCH BONES AND AVOID FIRE HYDRANTS.</div>
             <div>DISTANCE: <span id="walk-dist-val">0 / 500 m</span></div>
-            <div>UP / DOWN ARROWS TO SWITCH LANES</div>
           </div>
           <canvas class="walk-canvas" id="walk-canvas"></canvas>
         </div>
@@ -213,6 +214,33 @@
       </div>
     </div>
   </div>
+
+  <!-- Inventory Modal -->
+  <div class="modal-overlay" id="inventory-modal">
+    <div class="modal-window" style="width: 500px; max-width: 90vw;">
+      <div class="window-titlebar">
+        <div class="title-text">YOUR INVENTORY</div>
+        <button class="win-btn win-btn-close" id="btn-close-inventory">X</button>
+      </div>
+      <div class="modal-body">
+        <div class="inventory-tabs" style="display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 2px solid var(--y2k-pink); padding-bottom: 4px; overflow-x: auto;">
+          <button class="inv-tab active" data-tab="inv-furniture">FURNITURE</button>
+          <button class="inv-tab" data-tab="inv-toys">TOYS</button>
+          <button class="inv-tab" data-tab="inv-food">FOOD</button>
+          <button class="inv-tab" data-tab="inv-accessories">ACCESSORIES</button>
+          <button class="inv-tab" data-tab="inv-backgrounds">BACKGROUNDS</button>
+        </div>
+        
+        <div class="inv-content active" id="inv-furniture" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
+        <div class="inv-content" id="inv-toys" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
+        <div class="inv-content" id="inv-food" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
+        <div class="inv-content" id="inv-accessories" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
+        <div class="inv-content" id="inv-backgrounds" style="display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
+        
+        <div id="inv-empty-msg" style="display: none; text-align: center; color: #888; font-size: 12px; margin-top: 20px;">No items in this category.</div>
+      </div>
+    </div>
+  </div>
 <!-- Login Modal -->
 <div class="modal-overlay active" id="login-modal">
   <div class="modal-window">
@@ -229,6 +257,8 @@
     </div>
   </div>
 </div>
+
+
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>

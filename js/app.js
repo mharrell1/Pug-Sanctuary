@@ -12,18 +12,44 @@ class PugSanctuaryApp {
     this.activeInspectorPug = null;
     this.selectedAdoptPose = 'moku_1';
 
+    this.inventory = {
+      furniture: [],
+      toys: ['toy_tennis_ball'],
+      food: ['kibble'],
+      accessories: [],
+      backgrounds: []
+    };
+    this.activeFood = 'kibble';
+    this.activeToy = 'toy_tennis_ball';
+    this.activeBackground = 'grass';
+
     // Level-unlocked shop catalog
     this.shopItems = [
       { id: 'kibble', name: 'BASIC KIBBLE', price: 10, minLevel: 1, desc: 'Restores +30 Hunger', type: 'FOOD' },
       { id: 'salmon_treat', name: 'SALMON TREAT', price: 20, minLevel: 1, desc: 'Restores +45 Hunger & +15 Mood', type: 'FOOD' },
       { id: 'heart_rug', name: 'Y2K HEART RUG', price: 50, minLevel: 1, desc: 'Cute heart rug for grass field', type: 'FURNITURE', class: 'heart-rug' },
-      { id: 'soft_brush', name: 'GROOMING BRUSH', price: 35, minLevel: 2, desc: 'Restores +50 Hygiene', type: 'GROOM' },
+      { id: 'toy_tennis_ball', name: 'TENNIS BALL', price: 15, minLevel: 1, desc: 'A classic bouncy ball', type: 'TOY' },
+      { id: 'soft_brush', name: 'PET BRUSH', price: 35, minLevel: 2, desc: 'Unlocks brush step in bath mini-game!', type: 'GROOM', brushStep: true },
       { id: 'rubber_duck', name: 'RUBBER DUCK TOY', price: 45, minLevel: 2, desc: 'Interactive toy for grass field', type: 'TOY' },
-      { id: 'flower_box', name: 'FLOWER GARDEN BOX', price: 80, minLevel: 2, desc: 'Pretty flowers for sanctuary', type: 'FURNITURE', class: 'ortho-bed' },
+      { id: 'flower_box', name: 'FLOWER BED', price: 80, minLevel: 2, desc: 'Pretty flowers for sanctuary', type: 'FURNITURE', class: 'ortho-bed' },
       { id: 'berry_smoothie', name: 'BERRY SMOOTHIE', price: 60, minLevel: 3, desc: 'Restores +60 Hunger & +30 Mood', type: 'FOOD' },
-      { id: 'ortho_bed', name: 'ORTHOPEDIC BED', price: 95, minLevel: 3, desc: 'Restful bed for grass field', type: 'FURNITURE', class: 'ortho-bed' },
-      { id: 'water_fountain', name: 'SOLAR FOUNTAIN', price: 120, minLevel: 4, desc: 'Boosts overall sanctuary mood', type: 'FURNITURE', class: 'water-fountain' },
-      { id: 'dog_house', name: 'COZY DOG HOUSE', price: 140, minLevel: 5, desc: 'Cozy house for your pugs', type: 'FURNITURE', class: 'dog-house' }
+      {
+        id: 'dog_bed', name: 'DOG BED', price: 95, minLevel: 3,
+        desc: 'Cozy bed for your pug. Choose your color!',
+        type: 'FURNITURE', class: 'ortho-bed',
+        colors: [
+          { id: 'dog_bed_brown',  label: 'Brown',  swatch: '#7B4F2E' },
+          { id: 'dog_bed_creme',  label: 'Creme',  swatch: '#F5E6C8' },
+          { id: 'dog_bed_green',  label: 'Green',  swatch: '#4A7C3F' },
+          { id: 'dog_bed_grey',   label: 'Grey',   swatch: '#8A8A8A' },
+          { id: 'dog_bed_purple', label: 'Purple', swatch: '#7B2FBE' },
+          { id: 'dog_bed_red',    label: 'Red',    swatch: '#B82020' },
+        ]
+      },
+      { id: 'water_fountain', name: 'FOUNTAIN', price: 120, minLevel: 4, desc: 'Boosts overall sanctuary mood', type: 'FURNITURE', class: 'water-fountain' },
+      { id: 'dog_house', name: 'DOG HOUSE', price: 140, minLevel: 5, desc: 'Cozy house for your pugs', type: 'FURNITURE', class: 'dog-house' },
+      { id: 'beach', name: 'BEACH BACKGROUND', price: 200, minLevel: 4, desc: 'A sunny beach for your pugs', type: 'BACKGROUND' },
+      { id: 'night', name: 'NIGHT SKY BACKGROUND', price: 250, minLevel: 5, desc: 'A peaceful night under the stars', type: 'BACKGROUND' }
     ];
 
     this.initUI();
@@ -58,24 +84,37 @@ class PugSanctuaryApp {
       });
     }
 
-    // Tab switcher
+    // Shop & Other Tabs
     document.querySelectorAll('.y2k-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
+      tab.addEventListener('click', (e) => {
         document.querySelectorAll('.y2k-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-        tab.classList.add('active');
-        const targetId = tab.getAttribute('data-tab');
-        document.getElementById(targetId).classList.add('active');
-
-        if (targetId === 'tab-shop') {
+        e.target.classList.add('active');
+        document.getElementById(e.target.dataset.tab).classList.add('active');
+        if (e.target.dataset.tab === 'tab-shop') {
           this.renderShop();
         }
-
-        if (window.sfx) window.sfx.playClick();
       });
     });
 
+    // Inventory Modal
+    document.getElementById('btn-open-inventory').addEventListener('click', () => {
+      this.renderInventory();
+      document.getElementById('inventory-modal').classList.add('active');
+    });
+    document.getElementById('btn-close-inventory').addEventListener('click', () => {
+      document.getElementById('inventory-modal').classList.remove('active');
+    });
+
+    // Inventory Tabs
+    document.querySelectorAll('.inv-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.inv-content').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        document.getElementById(e.target.dataset.tab).classList.add('active');
+      });
+    });
 
     // Field Action Toolbar — toggle on/off on each click, no persistent SELECT state
     document.querySelectorAll('.sanctuary-toolbar .tool-btn').forEach(btn => {
@@ -308,6 +347,107 @@ class PugSanctuaryApp {
     document.getElementById('val-hygiene').innerText = `${avgHygiene}%`;
   }
 
+  renderInventory() {
+    const categories = ['furniture', 'toys', 'food', 'accessories', 'backgrounds'];
+    let totalItems = 0;
+
+    categories.forEach(cat => {
+      const container = document.getElementById(`inv-${cat}`);
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const items = this.inventory[cat] || [];
+      totalItems += items.length;
+
+      items.forEach(itemId => {
+        // Resolve name — check direct match first, then color variants inside parent items
+        let shopItem = this.shopItems.find(i => i.id === itemId);
+        if (!shopItem) {
+          for (const parent of this.shopItems) {
+            if (parent.colors) {
+              const colorEntry = parent.colors.find(c => c.id === itemId);
+              if (colorEntry) {
+                shopItem = { id: itemId, name: `${colorEntry.label.toUpperCase()} DOG BED` };
+                break;
+              }
+            }
+          }
+        }
+        if (!shopItem) shopItem = { id: itemId, name: itemId.toUpperCase() };
+        
+        const card = document.createElement('div');
+        card.className = 'inv-item-card';
+        
+        // Determine if equipped/active
+        let isEquipped = false;
+        if (cat === 'food' && this.activeFood === itemId) isEquipped = true;
+        if (cat === 'toys' && this.activeToy === itemId) isEquipped = true;
+        if (cat === 'backgrounds' && this.activeBackground === itemId) isEquipped = true;
+        
+        if (isEquipped) card.classList.add('equipped');
+
+        const img = document.createElement('img');
+        img.className = 'inv-item-img';
+        
+        // Match image rendering logic
+        if (cat === 'backgrounds') {
+          img.src = `assets/backgrounds/${itemId}.png`;
+        } else {
+          // Use the actual PNG for food, toys, and furniture
+          img.src = `assets/items/${itemId}.png`;
+          img.onerror = () => { img.src = 'assets/items/food_bowl.png'; };
+        }
+        
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'inv-item-name';
+        nameLabel.innerText = isEquipped ? `${shopItem.name} (EQ)` : shopItem.name;
+
+        card.appendChild(img);
+        card.appendChild(nameLabel);
+
+        card.addEventListener('click', () => {
+          if (cat === 'furniture') {
+            // Place furniture immediately (simulating drag/drop or random place like before)
+            const rx = 180 + Math.random() * 450;
+            const ry = 180 + Math.random() * 180;
+            this.sanctuary.addFurniture(rx, ry, itemId);
+            this.showNotification(`PLACED ${shopItem.name} ON GRASS FIELD!`);
+            document.getElementById('inventory-modal').classList.remove('active');
+            this.saveState();
+          } else if (cat === 'food') {
+            this.activeFood = itemId;
+            this.showNotification(`EQUIPPED ${shopItem.name}!`);
+            this.saveState();
+            this.renderInventory();
+          } else if (cat === 'toys') {
+            this.activeToy = itemId;
+            this.showNotification(`EQUIPPED ${shopItem.name}!`);
+            this.saveState();
+            this.renderInventory();
+          } else if (cat === 'backgrounds') {
+            this.activeBackground = itemId;
+            if (this.sanctuary.wrapper) {
+              this.sanctuary.wrapper.style.backgroundImage = `url('assets/backgrounds/${itemId}.png')`;
+            }
+            this.showNotification(`BACKGROUND CHANGED TO ${shopItem.name}!`);
+            this.saveState();
+            this.renderInventory();
+          }
+          if (window.sfx) window.sfx.playClick();
+        });
+
+        container.appendChild(card);
+      });
+    });
+
+    const emptyMsg = document.getElementById('inv-empty-msg');
+    if (emptyMsg) {
+      emptyMsg.style.display = totalItems === 0 ? 'block' : 'none';
+      if (totalItems === 0) emptyMsg.innerText = "YOUR INVENTORY IS EMPTY! BUY ITEMS FROM PUGMART.";
+      else emptyMsg.style.display = 'none'; // Individual tab empty state could be handled, but total empty is fine for now
+    }
+  }
+
   renderShop() {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
@@ -318,20 +458,95 @@ class PugSanctuaryApp {
       const isLocked = this.level < item.minLevel;
       card.className = `shop-item-card ${isLocked ? 'locked' : ''}`;
 
+      let category = item.type.toLowerCase();
+      if (category === 'groom') category = 'accessories';
+      if (category === 'background') category = 'backgrounds';
+      if (category === 'toy') category = 'toys';
+
+      // Dog Bed with color picker
+      if (item.colors) {
+        const ownedColors = item.colors.filter(c =>
+          this.inventory[category] && this.inventory[category].includes(c.id)
+        );
+        const allOwned = ownedColors.length === item.colors.length;
+
+        // Determine preview color
+        const previewColor = item.colors[0];
+
+        card.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; width: 100%;">
+            <div class="shop-item-title">${item.name}</div>
+            <img src="assets/items/${previewColor.id}.png?v=1" style="width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated;" onerror="this.style.display='none'">
+            <div class="shop-item-desc">${item.desc}</div>
+            <div class="bed-color-swatches" style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:2px;">
+              ${item.colors.map(c => {
+                const owned = this.inventory[category] && this.inventory[category].includes(c.id);
+                return `<div class="bed-swatch ${owned ? 'owned' : ''}" data-color-id="${c.id}" title="${c.label}" style="width:18px;height:18px;border-radius:50%;background:${c.swatch};border:2px solid ${owned ? '#00cc44' : '#000'};cursor:pointer;position:relative;" ></div>`;
+              }).join('')}
+            </div>
+            <div class="bed-color-label" style="font-size:9px;color:#666;">CLICK A COLOR TO BUY (${item.price} P$ EA)</div>
+          </div>
+        `;
+
+        // Swatch click handlers
+        card.querySelectorAll('.bed-swatch').forEach(swatch => {
+          swatch.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const colorId = swatch.dataset.colorId;
+            const colorInfo = item.colors.find(c => c.id === colorId);
+            if (!colorInfo) return;
+            const alreadyOwned = this.inventory[category] && this.inventory[category].includes(colorId);
+            if (alreadyOwned) {
+              this.showNotification(`${colorInfo.label.toUpperCase()} BED ALREADY OWNED!`);
+              return;
+            }
+            if (this.coins < item.price) {
+              this.showNotification('NOT ENOUGH PUGBUCKS!');
+              return;
+            }
+            // Update preview image
+            const previewImg = card.querySelector('img');
+            if (previewImg) previewImg.src = `assets/items/${colorId}.png?v=1`;
+            // Buy this color
+            this.coins -= item.price;
+            this.updateStatusHeader();
+            if (window.sfx) window.sfx.playCoin();
+            this.inventory[category].push(colorId);
+            swatch.style.border = '2px solid #00cc44';
+            swatch.classList.add('owned');
+            this.showNotification(`UNLOCKED ${colorInfo.label.toUpperCase()} DOG BED!`);
+            this.saveState();
+            if (document.getElementById('inventory-modal')?.classList.contains('active')) {
+              this.renderInventory();
+            }
+          });
+        });
+
+        container.appendChild(card);
+        return;
+      }
+
+      const isOwned = this.inventory[category] && this.inventory[category].includes(item.id);
+
       card.innerHTML = `
-        <div>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
           <div class="shop-item-title">${item.name}</div>
+          <img src="assets/items/${item.id}.png?v=8" style="width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; display: block;" onerror="this.style.display='none'">
           <div class="shop-item-desc">${item.desc}</div>
         </div>
-        <div>
-          <div class="shop-item-price">${item.price} P$</div>
-          <button class="tool-btn" style="width: 100%; font-size: 9px;" ${isLocked ? 'disabled' : ''}>
-            ${isLocked ? `UNLOCKS AT LVL ${item.minLevel}` : 'BUY ITEM'}
-          </button>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+          ${!isOwned ? `<div class="shop-item-price">${item.price} P$</div>` : ''}
+          ${!isOwned ? `
+            <button class="tool-btn" style="width: 100%; font-size: 9px;" ${isLocked ? 'disabled' : ''}>
+              ${isLocked ? `UNLOCKS AT LVL ${item.minLevel}` : 'BUY ITEM'}
+            </button>
+          ` : `
+            <div style="font-size: 9px; color: var(--accent-green); text-align: center; margin-top: 4px; font-weight: bold;">OWNED</div>
+          `}
         </div>
       `;
 
-      if (!isLocked) {
+      if (!isLocked && !isOwned) {
         card.querySelector('button').addEventListener('click', () => this.buyShopItem(item));
       }
 
@@ -345,31 +560,39 @@ class PugSanctuaryApp {
       return;
     }
 
+    // Check if already owned (except GROOM items which might still be consumable, or we can make them permanent tools too)
+    // For now, let's assume GROOM is consumable or unlocked. The user said furniture, toys, food, and accessories.
+    let category = item.type.toLowerCase();
+    if (category === 'groom') category = 'accessories';
+    if (category === 'background') category = 'backgrounds';
+    if (category === 'toy') category = 'toys';
+    
+    // Check if already in inventory
+    if (this.inventory[category] && this.inventory[category].includes(item.id)) {
+      this.showNotification("ALREADY OWNED!");
+      return;
+    }
+
     this.coins -= item.price;
     this.updateStatusHeader();
     if (window.sfx) window.sfx.playCoin();
 
-    if (item.type === 'FOOD') {
-      if (this.sanctuary.pugs.length > 0) {
-        this.sanctuary.pugs.forEach(p => p.feed(40));
-        this.showNotification(`PURCHASED ${item.name}! ALL PUGS FED!`);
-      }
-    } else if (item.type === 'GROOM') {
-      if (this.sanctuary.pugs.length > 0) {
-        this.sanctuary.pugs.forEach(p => p.groom());
-        this.showNotification(`PURCHASED ${item.name}! PUGS GROOMED!`);
-      }
-    } else if (item.type === 'TOY') {
-      this.sanctuary.addToy(200 + Math.random() * 400, 200 + Math.random() * 150);
-      this.showNotification(`PLACED ${item.name} ON GRASS FIELD!`);
-    } else if (item.type === 'FURNITURE') {
-      const rx = 180 + Math.random() * 450;
-      const ry = 180 + Math.random() * 180;
-      this.sanctuary.addFurniture(rx, ry, item.name, item.class || 'ortho-bed');
-      this.showNotification(`PLACED ${item.name} ON GRASS FIELD!`);
+    // Add to inventory
+    if (this.inventory[category]) {
+      this.inventory[category].push(item.id);
     }
 
+    this.showNotification(`UNLOCKED ${item.name} IN INVENTORY!`);
+    
+    // If it's food or toy, optionally auto-equip it? 
+    // Or just let them equip it from the inventory.
+    
     this.saveState();
+    
+    // If the inventory modal is open, re-render it
+    if (document.getElementById('inventory-modal')?.classList.contains('active')) {
+      this.renderInventory();
+    }
   }
 
   showNotification(msg) {
@@ -397,12 +620,7 @@ class PugSanctuaryApp {
 
   // Save state – if logged in use Firestore, otherwise fallback to localStorage
   saveState() {
-    const data = {
-      coins: this.coins,
-      exp: this.exp,
-      level: this.level,
-      pugs: this.sanctuary.pugs.map(p => p.toJSON())
-    };
+    const data = this.getGameState();
     if (window.auth && window.auth.user) {
       window.auth.saveState(data);
     } else {
@@ -430,29 +648,95 @@ class PugSanctuaryApp {
         if (state) {
           this.applyLoadedState(state);
         } else if (!tryLocal()) {
-          this.initDefaultPug();
+          this.applyLoadedState({});
         }
       }).catch(err => {
         console.error('Auth load error:', err);
-        if (!tryLocal()) this.initDefaultPug();
+        if (!tryLocal()) this.applyLoadedState({});
       });
     } else {
-      if (!tryLocal()) this.initDefaultPug();
+      if (!tryLocal()) this.applyLoadedState({});
     }
     this.renderShop();
     this.updateStatusHeader();
   }
 
-  // Helper to apply a loaded state object
   applyLoadedState(state) {
+    // Clear existing sanctuary objects to avoid duplicates on login/load state changes
+    if (this.sanctuary && typeof this.sanctuary.clearSanctuary === 'function') {
+      this.sanctuary.clearSanctuary();
+    }
+    
+    // Reset active inspector reference and close inspector/picker modals
+    this.activeInspectorPug = null;
+    const inspectorModal = document.getElementById('inspector-modal');
+    if (inspectorModal) inspectorModal.classList.remove('active');
+    const pickerModal = document.getElementById('pug-picker-modal');
+    if (pickerModal) pickerModal.classList.remove('active');
+
     this.coins = state.coins || 100;
     this.exp = state.exp || 0;
     this.level = state.level || 1;
+    
+    // Restore Inventory & Active Items
+    this.inventory = state.inventory || { furniture: [], toys: [], food: [], accessories: [], backgrounds: [] };
+    if (!this.inventory.furniture) this.inventory.furniture = [];
+
+    // Migration: remove stale ortho_bed items that were renamed to dog_bed_*
+    this.inventory.furniture = this.inventory.furniture.filter(id => !id.startsWith('ortho_bed'));
+
+    // Build the full set of valid item IDs (including color variants)
+    const validIds = new Set();
+    this.shopItems.forEach(item => {
+      validIds.add(item.id);
+      if (item.colors) item.colors.forEach(c => validIds.add(c.id));
+    });
+    // Strip any furniture IDs that don't exist in the shop catalog
+    this.inventory.furniture = this.inventory.furniture.filter(id => validIds.has(id));
+    
+    // Ensure default items exist
+    if (!this.inventory.toys) this.inventory.toys = [];
+    if (!this.inventory.toys.includes('toy_tennis_ball')) {
+      this.inventory.toys.push('toy_tennis_ball');
+    }
+    if (!this.inventory.food) this.inventory.food = [];
+    if (!this.inventory.food.includes('kibble')) {
+      this.inventory.food.push('kibble');
+    }
+    
+    this.activeFood = state.activeFood || 'kibble';
+    this.activeToy = state.activeToy || 'toy_tennis_ball';
+    
+    // Safety check: if active items aren't actually owned, revert to defaults
+    if (!this.inventory.toys.includes(this.activeToy)) {
+      this.activeToy = 'toy_tennis_ball';
+    }
+    if (!this.inventory.food.includes(this.activeFood)) {
+      this.activeFood = 'kibble';
+    }
+    
+    this.activeBackground = state.activeBackground || 'grass';
+    
+    // Apply background
+    if (this.activeBackground && this.sanctuary.wrapper) {
+      this.sanctuary.wrapper.style.backgroundImage = `url('assets/backgrounds/${this.activeBackground}.png')`;
+    }
+
     if (Array.isArray(state.pugs) && state.pugs.length > 0) {
       state.pugs.forEach(pData => this.sanctuary.addPug(pData));
     } else {
       this.initDefaultPug();
     }
+    
+    // Restore Placed Items
+    if (Array.isArray(state.placedToys)) {
+      state.placedToys.forEach(t => this.sanctuary.addToy(t.x, t.y, t.id));
+    }
+    if (Array.isArray(state.placedFurniture)) {
+      state.placedFurniture.forEach(f => this.sanctuary.addFurniture(f.x, f.y, f.id, f.scale, f.angle));
+    }
+
+    this.renderInventory();
     this.renderShop();
     this.updateStatusHeader();
   }
@@ -468,7 +752,13 @@ class PugSanctuaryApp {
       coins: this.coins,
       exp: this.exp,
       level: this.level,
-      pugs: this.sanctuary.pugs.map(p => p.toJSON())
+      pugs: this.sanctuary.pugs.map(p => p.toJSON()),
+      inventory: this.inventory,
+      activeFood: this.activeFood,
+      activeToy: this.activeToy,
+      activeBackground: this.activeBackground,
+      placedToys: this.sanctuary.toyItems.map(t => ({x: t.x, y: t.y, id: t.id})),
+      placedFurniture: this.sanctuary.furnitureItems.map(f => ({x: f.x, y: f.y, id: f.id, scale: f.scale, angle: f.angle}))
     };
   }
 

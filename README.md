@@ -11,8 +11,9 @@
 - 🖥️ **Y2K Windows Desktop Aesthetic**: Nostalgic 90s/2000s desktop window UI complete with title bars, retro sound effects, tab switches, and pixel fonts.
 - 🐾 **Adopt & Care for Pugs**: Name your pugs, track their hunger, hygiene, happiness, and energy levels in real-time.
 - 🦴 **Continuous Platformer Walking Mini-Game**: Take your pug on a walk in the park! Use arrow keys to jump and navigate past obstacles to collect bones and earn **PugBucks ($P)**.
-- 🛁 **Interactive Soap & Rinse Bath Mini-Game**: Lather your pug with shampoo bubbles using the soap tool, then rinse them clean with the interactive shower nozzle.
-- 🛍️ **PugMart Shop & Decorations**: Earn PugBucks and EXP to level up your sanctuary and unlock new toys, treats, beds, flower boxes, and dog houses.
+- 🛁 **Interactive 3-Step Bath Mini-Game**: Lather your pug with shampoo bubbles, rinse them clean with the shower nozzle, and finish by brushing them with the Pet Brush for extra fluff!
+- 🛍️ **PugMart Shop & Decorations**: Earn PugBucks and EXP to level up your sanctuary and unlock new toys, treats, heart rugs, fountains, and dog beds (available in 6 colors!).
+- 🎨 **Canva-Style Furniture Editor**: Click any placed furniture to open a dynamic editor box to easily resize, rotate (↺), or remove (X) items.
 - 💾 **User Accounts & Progress Persistence**: Log in with your username to automatically save and sync your sanctuary progress across devices.
 
 ---
@@ -23,10 +24,11 @@
 2. **Care for Your Pugs**:
    - Click **Place Food Bowl** or **Place Toy** on the grass field to feed and entertain your pugs.
    - Use the **Poop Scoop** tool to keep the sanctuary clean!
+   - **Edit Furniture**: Click on any placed furniture (like beds or rugs) to reveal the editor box. Drag to move, use the corners to resize, the '↺' arrow to angle it, or the 'X' to put it back in your inventory.
 3. **Mini-Games**:
-   - **Walk Mode**: Use `Arrow Up` / `Space` to jump over obstacles and collect bone gifts.
-   - **Bath Mode**: Click the shampoo tool to suds up your pug, then switch to the shower nozzle to rinse them sparkling clean.
-4. **PugMart**: Visit the shop tab to buy kibble, treats, heart rugs, solar fountains, and orthopedic beds as you level up.
+   - **Walk Mode**: Use `Arrow Up` / `Arrow Down` to move your pug and collect bone gifts while avoiding fire hydrants.
+   - **Bath Mode**: Click the shampoo tool to suds up your pug, switch to the shower nozzle to rinse them, and (if you own it) use the Pet Brush for a sparkling finish.
+4. **PugMart**: Visit the shop tab to buy kibble, treats, heart rugs, solar fountains, and dog beds as you level up. All items are stored in your visual inventory!
 
 ---
 

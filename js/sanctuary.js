@@ -110,9 +110,13 @@ class PugEntity {
       if (this.nameBadge) this.nameBadge.classList.remove('happy');
     }
 
-    const src = `assets/pugs/${this.pose}.png`;
+    const src = `assets/pugs/${this.pose || 'moku_1'}.png`;
     if (this.imgElement.getAttribute('src') !== src) {
       this.imgElement.src = src;
+      this.imgElement.onerror = () => {
+        if (this.imgElement.src.includes('moku_1.png')) return;
+        this.imgElement.src = 'assets/pugs/moku_1.png';
+      };
     }
   }
 
@@ -185,7 +189,8 @@ class PugEntity {
     this.y = Math.max(padTop, Math.min(this.y, this.stageHeight - padBottom));
 
     // Position container (UNFLIPPED so text & bubbles stay right-side up)
-    const zIndex = Math.floor(this.y);
+    // Add 1000 to the pug's z-index so it renders on top of placed ground items!
+    const zIndex = Math.floor(this.y) + 1000;
     this.element.style.transform = `translate3d(${this.x}px, ${this.y + this.yBob}px, 0)`;
     this.element.style.zIndex = zIndex;
 
@@ -258,24 +263,166 @@ class SanctuaryEngine {
 
   initEvents() {
     this.wrapper.addEventListener('click', (e) => {
+      if (e.target === this.wrapper) {
+        this.deactivateFurnitureEdit();
+      }
+
       if (e.target !== this.wrapper) return;
       const rect = this.wrapper.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
 
       if (this.activeTool === 'BOWL') {
-        this.addFoodBowl(clickX, clickY);
+        const activeFood = window.app && window.app.activeFood ? window.app.activeFood : 'kibble';
+        this.addFoodBowl(clickX, clickY, activeFood);
         this.deactivateTool();
       } else if (this.activeTool === 'TOY') {
-        this.addToy(clickX, clickY);
+        const activeToy = window.app && window.app.activeToy ? window.app.activeToy : 'rubber_duck';
+        this.addToy(clickX, clickY, activeToy);
         this.deactivateTool();
       }
     });
+
+    let isDragging = false;
+    let isScaling = false;
+    let initialScale = 1;
+    let initialMouseY = 0;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    this.wrapper.addEventListener('mousedown', (e) => {
+      if (this.activeFurniture) {
+        if (e.target.classList.contains('edit-handle')) {
+          isScaling = true;
+          initialScale = this.activeFurniture.scale;
+          initialMouseY = e.clientY;
+          e.stopPropagation();
+          return;
+        }
+        
+        if (e.target === this.activeFurniture.el || this.activeFurniture.el.contains(e.target)) {
+          if (!e.target.classList.contains('edit-action-btn')) {
+            isDragging = true;
+            const rect = this.activeFurniture.el.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            e.stopPropagation();
+          }
+        }
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isScaling && this.activeFurniture) {
+        const deltaY = initialMouseY - e.clientY; 
+        const newScale = Math.max(0.5, Math.min(3.5, initialScale + deltaY * 0.015));
+        this.activeFurniture.scale = newScale;
+        this.activeFurniture.updateTransform();
+      }
+      else if (isDragging && this.activeFurniture) {
+        const wrapperRect = this.wrapper.getBoundingClientRect();
+        let newX = e.clientX - wrapperRect.left - dragOffsetX;
+        let newY = e.clientY - wrapperRect.top - dragOffsetY;
+        
+        newX = Math.max(0, Math.min(newX, this.stageWidth - 50));
+        newY = Math.max(0, Math.min(newY, this.stageHeight - 50));
+        
+        this.activeFurniture.x = newX;
+        this.activeFurniture.y = newY;
+        this.activeFurniture.el.style.left = newX + 'px';
+        this.activeFurniture.el.style.top = newY + 'px';
+        this.activeFurniture.el.style.zIndex = Math.floor(newY);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging || isScaling) {
+        isDragging = false;
+        isScaling = false;
+        if (window.app && window.app.saveGame) window.app.saveGame();
+      }
+    });
+  }
+
+  activateFurnitureEdit(itemObj) {
+    this.deactivateFurnitureEdit();
+    this.activeFurniture = itemObj;
+    this.activeFurniture.el.classList.add('active-edit');
+    
+    if (!this.activeFurniture.el.querySelector('.edit-handle')) {
+      const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+      handles.forEach(pos => {
+        const h = document.createElement('div');
+        h.className = `edit-handle ${pos}`;
+        this.activeFurniture.el.appendChild(h);
+      });
+      
+      const rmBtn = document.createElement('div');
+      rmBtn.className = 'edit-action-btn edit-btn-remove';
+      rmBtn.innerText = 'X';
+      rmBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeFurniture(this.activeFurniture);
+        this.deactivateFurnitureEdit();
+      });
+      this.activeFurniture.el.appendChild(rmBtn);
+      
+      const rotBtn = document.createElement('div');
+      rotBtn.className = 'edit-action-btn edit-btn-rotate';
+      rotBtn.innerText = '↻';
+      rotBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.activeFurniture.angle = (this.activeFurniture.angle + 45) % 360;
+        this.activeFurniture.updateTransform();
+        if (window.app && window.app.saveGame) window.app.saveGame();
+      });
+      this.activeFurniture.el.appendChild(rotBtn);
+    }
+  }
+
+  deactivateFurnitureEdit() {
+    if (this.activeFurniture) {
+      this.activeFurniture.el.classList.remove('active-edit');
+      this.activeFurniture = null;
+    }
   }
 
   deactivateTool() {
     this.activeTool = null;
     document.querySelectorAll('.sanctuary-toolbar .tool-btn').forEach(b => b.classList.remove('active'));
+  }
+  clearSanctuary() {
+    // Clear pugs
+    this.pugs.forEach(pug => {
+      if (pug.element && pug.element.parentNode) {
+        pug.element.parentNode.removeChild(pug.element);
+      }
+    });
+    this.pugs = [];
+
+    // Clear food bowls
+    this.foodItems.forEach(item => {
+      if (item.el && item.el.parentNode) {
+        item.el.parentNode.removeChild(item.el);
+      }
+    });
+    this.foodItems = [];
+
+    // Clear toys
+    this.toyItems.forEach(item => {
+      if (item.el && item.el.parentNode) {
+        item.el.parentNode.removeChild(item.el);
+      }
+    });
+    this.toyItems = [];
+
+    // Clear furniture
+    this.furnitureItems.forEach(item => {
+      if (item.el && item.el.parentNode) {
+        item.el.parentNode.removeChild(item.el);
+      }
+    });
+    this.furnitureItems = [];
   }
 
   addPug(pugData) {
@@ -296,7 +443,10 @@ class SanctuaryEngine {
     }
   }
 
-  addFoodBowl(x, y) {
+  addFoodBowl(x, y, itemId = 'kibble') {
+    const shopItem = window.app ? window.app.shopItems.find(i => i.id === itemId) : null;
+    const name = shopItem ? shopItem.name : 'Food Bowl';
+    
     const bowl = document.createElement('div');
     bowl.className = 'field-item food-bowl';
     bowl.style.left = x + 'px';
@@ -304,55 +454,161 @@ class SanctuaryEngine {
     bowl.style.zIndex = Math.floor(y);
 
     const img = document.createElement('img');
-    img.src = 'assets/items/food_bowl.png';
-    img.alt = 'Pixel Food Bowl';
+    // Map items to images
+    if (itemId === 'salmon_treat') {
+      img.src = 'assets/items/salmon_treat.png';
+    } else if (itemId === 'berry_smoothie') {
+      img.src = 'assets/items/berry_smoothie.png';
+    } else {
+      img.src = 'assets/items/kibble.png?v=3'; // default kibble
+    }
+    
+    img.alt = name;
+    img.style.cssText = 'width:32px;height:32px;display:block;image-rendering:pixelated;pointer-events:none;';
     bowl.appendChild(img);
 
-    const itemObj = { x, y, el: bowl, type: 'food' };
+    const itemObj = { x, y, el: bowl, type: 'food', id: itemId, name };
     this.foodItems.push(itemObj);
     this.wrapper.appendChild(bowl);
 
     if (window.sfx) window.sfx.playClick();
-    this.spawnParticle(x, y - 20, '+Food Bowl', 'coin');
+    this.spawnParticle(x, y - 20, `+${name}`, 'coin');
 
     // All pugs run immediately to where the food bowl is placed!
     this.pugs.forEach(p => p.setTarget(x, y));
   }
 
-  addToy(x, y) {
+  addToy(x, y, itemId = 'rubber_duck') {
+    const shopItem = window.app ? window.app.shopItems.find(i => i.id === itemId) : null;
     const toy = document.createElement('div');
-    toy.className = 'field-item toy-ball';
+    toy.className = `field-item toy-ball`;
     toy.style.left = x + 'px';
     toy.style.top = y + 'px';
     toy.style.zIndex = Math.floor(y);
+    toy.style.cursor = 'pointer';
 
     const img = document.createElement('img');
-    img.src = 'assets/items/tennis_ball.png?v=' + Date.now();
-    img.alt = 'Pixel Tennis Ball';
-    img.style.cssText = 'width:22px;height:22px;display:block;image-rendering:pixelated;pointer-events:none;';
+    // Simple mapping for toys, or fallback to tennis ball if not found
+    img.src = itemId === 'rubber_duck' ? 'assets/items/rubber_duck.png' : 'assets/items/toy_tennis_ball.png';
+    img.alt = shopItem ? shopItem.name : 'Pixel Toy';
+    img.style.cssText = 'width:32px;height:32px;display:block;image-rendering:pixelated;pointer-events:none;';
     toy.appendChild(img);
 
-    const itemObj = { x, y, el: toy, type: 'toy' };
+    const itemObj = { x, y, el: toy, type: 'toy', id: itemId };
     this.toyItems.push(itemObj);
     this.wrapper.appendChild(toy);
 
+    toy.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.removeToy(itemObj);
+    });
+
     if (window.sfx) window.sfx.playClick();
-    this.spawnParticle(x, y - 20, '+Toy', 'heart');
+    this.spawnParticle(x, y - 20, `+${shopItem ? shopItem.name : 'Toy'}`, 'heart');
   }
 
-  addFurniture(x, y, name, typeClass = 'ortho-bed') {
+  removeToy(itemObj) {
+    const idx = this.toyItems.indexOf(itemObj);
+    if (idx !== -1) {
+      if (itemObj.el.parentNode) itemObj.el.parentNode.removeChild(itemObj.el);
+      this.toyItems.splice(idx, 1);
+      if (window.sfx) window.sfx.playScoop();
+      if (window.app) window.app.showNotification(`RETURNED TO INVENTORY`);
+      if (window.app && window.app.saveGame) window.app.saveGame();
+    }
+  }
+
+  addFurniture(x, y, itemId = 'dog_bed_brown', scale = 1, angle = 0) {
+    // Find shop item - for color variants, check the colors array inside parent items
+    let shopItem = window.app ? window.app.shopItems.find(i => i.id === itemId) : null;
+    let typeClass = 'ortho-bed';
+    let name = 'FURNITURE';
+
+    if (shopItem) {
+      typeClass = shopItem.class || 'ortho-bed';
+      name = shopItem.name;
+    } else if (window.app) {
+      // Check if it's a color variant (e.g. ortho_bed_brown) inside a parent item with .colors
+      for (const parent of window.app.shopItems) {
+        if (parent.colors) {
+          const colorEntry = parent.colors.find(c => c.id === itemId);
+          if (colorEntry) {
+            typeClass = parent.class || 'ortho-bed';
+            name = `${colorEntry.label.toUpperCase()} DOG BED`;
+            break;
+          }
+        }
+      }
+    }
+
     const furn = document.createElement('div');
     furn.className = `field-item furniture-item ${typeClass}`;
     furn.style.left = x + 'px';
     furn.style.top = y + 'px';
     furn.style.zIndex = Math.floor(y);
+    furn.style.cursor = 'pointer';
+    furn.style.position = 'absolute';
 
-    const itemObj = { x, y, el: furn, name, type: 'furniture' };
+    const img = document.createElement('img');
+    img.src = `assets/items/${itemId}.png?v=9`;
+    img.style.cssText = 'width:64px;height:64px;display:block;image-rendering:pixelated;pointer-events:none;object-fit:contain;transition: width 0.1s, height 0.1s;';
+    
+    let baseW = 64;
+    let baseH = 64;
+    
+    const updateTransform = () => {
+      img.style.transform = `rotate(${itemObj.angle}deg)`;
+      img.style.width = (baseW * itemObj.scale) + 'px';
+      img.style.height = (baseH * itemObj.scale) + 'px';
+    };
+    
+    img.onload = () => {
+      furn.style.background = 'transparent';
+      furn.style.border = 'none';
+      furn.style.boxShadow = 'none';
+      furn.style.width = 'auto';
+      furn.style.height = 'auto';
+      
+      if (itemId === 'flower_box') {
+        baseW = 100; baseH = 100;
+      } else if (itemId === 'dog_house') {
+        baseW = 120; baseH = 120;
+      } else if (itemId === 'water_fountain') {
+        baseW = 90; baseH = 90;
+      } else if (itemId === 'heart_rug') {
+        baseW = 100; baseH = 100;
+      }
+      updateTransform();
+    };
+    
+    img.onerror = () => {
+      img.style.display = 'none';
+    };
+    
+    furn.appendChild(img);
+
+    const itemObj = { x, y, el: furn, name, type: 'furniture', id: itemId, scale, angle, updateTransform };
     this.furnitureItems.push(itemObj);
     this.wrapper.appendChild(furn);
 
+    furn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.activateFurnitureEdit(itemObj);
+    });
+
     if (window.sfx) window.sfx.playClick();
     this.spawnParticle(x, y - 20, `+${name}`, 'heart');
+  }
+
+  removeFurniture(itemObj) {
+    const idx = this.furnitureItems.indexOf(itemObj);
+    if (idx !== -1) {
+      if (itemObj.el.parentNode) itemObj.el.parentNode.removeChild(itemObj.el);
+      this.furnitureItems.splice(idx, 1);
+      if (window.sfx) window.sfx.playScoop();
+      if (window.app) window.app.showNotification(`RETURNED TO INVENTORY`);
+      if (window.app && window.app.saveGame) window.app.saveGame();
+    }
   }
 
   spawnParticle(x, y, text, type = 'heart') {
@@ -376,8 +632,24 @@ class SanctuaryEngine {
         const dx = pug.x - food.x;
         const dy = pug.y - food.y;
         if (Math.sqrt(dx * dx + dy * dy) < 30) {
-          pug.feed(40);
-          this.spawnParticle(pug.x, pug.y - 40, '+Food', 'coin');
+          let hungerBoost = 30;
+          let moodBoost = 0;
+          if (food.id === 'salmon_treat') {
+            hungerBoost = 45;
+            moodBoost = 15;
+          } else if (food.id === 'berry_smoothie') {
+            hungerBoost = 60;
+            moodBoost = 30;
+          }
+          
+          pug.feed(hungerBoost);
+          if (moodBoost > 0) pug.pet(); // pet() restores mood, wait, does pet() take an amount? 
+          // Let's just adjust mood directly since feed() doesn't do mood.
+          // Wait, pug.pet() restores some mood. Let's just call pug.pet() twice if smoothie.
+          // Actually, let's just set pug.mood = Math.min(100, pug.mood + moodBoost);
+          pug.mood = Math.min(100, pug.mood + moodBoost);
+          
+          this.spawnParticle(pug.x, pug.y - 40, `+${food.name || 'Food'}`, 'coin');
           if (food.el.parentNode) food.el.parentNode.removeChild(food.el);
           this.foodItems.splice(fIdx, 1);
         }
