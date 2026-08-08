@@ -356,12 +356,18 @@ class PugSanctuaryApp {
       if (!container) return;
       container.innerHTML = '';
       
-      const items = this.inventory[cat] || [];
+      let items = [...(this.inventory[cat] || [])];
+      if (cat === 'backgrounds' && !items.includes('grass')) {
+        items.unshift('grass');
+      }
       totalItems += items.length;
 
       items.forEach(itemId => {
         // Resolve name — check direct match first, then color variants inside parent items
         let shopItem = this.shopItems.find(i => i.id === itemId);
+        if (itemId === 'grass') {
+          shopItem = { id: 'grass', name: 'REGULAR GRASS' };
+        }
         if (!shopItem) {
           for (const parent of this.shopItems) {
             if (parent.colors) {
