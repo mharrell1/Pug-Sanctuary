@@ -9,12 +9,15 @@
 ## 🌟 Key Features
 
 - 🖥️ **Y2K Windows Desktop Aesthetic**: Nostalgic 90s/2000s desktop window UI complete with title bars, retro sound effects, tab switches, and pixel fonts.
-- 🐾 **Adopt & Care for Pugs**: Name your pugs, track their hunger, hygiene, happiness, and energy levels in real-time.
-- 🦴 **Continuous Platformer Walking Mini-Game**: Take your pug on a walk in the park! Use arrow keys to jump and navigate past obstacles to collect bones and earn **PugBucks ($P)**.
+- 🐾 **Adopt & Care for Pugs**: Name your pugs, track their hunger, hygiene, happiness, and energy levels in real-time. Choose from **25 unique adoptable pug styles** (including Classic Kaleo, Puppy, Referee, Skeleton, Bee, and Pirate).
+- 😀 **Dynamic Happiness Poses**: Pugs react dynamically to their care! If their happiness level drops below 50, they will show a sad face (if available), and when their happiness level is high (>= 80), they will show a happy, smiling face.
+- 🚫 **Pug Collision Avoidance**: Active pugs in the sanctuary field steer clear of each other, dynamically preventing overlaps and keeping the sanctuary orderly.
+- 🦴 **Continuous Platformer Walking Mini-Game**: Take your pug on a walk in the park! Use arrow keys to jump and navigate past obstacles to collect bones and earn **PugBucks ($P)**. The game automatically adapts the walking sprite to match the adopted pug (e.g. red/tan harnesses).
 - 🛁 **Interactive 3-Step Bath Mini-Game**: Lather your pug with shampoo bubbles, rinse them clean with the shower nozzle, and finish by brushing them with the Pet Brush for extra fluff!
 - 🛍️ **PugMart Shop & Decorations**: Earn PugBucks and EXP to level up your sanctuary and unlock new toys, treats, heart rugs, fountains, and dog beds (available in 6 colors!).
 - 🎨 **Canva-Style Furniture Editor**: Click any placed furniture to open a dynamic editor box to easily resize, rotate (↺), or remove (X) items.
 - 💾 **User Accounts & Progress Persistence**: Log in with your username to automatically save and sync your sanctuary progress across devices.
+- 📏 **Dynamic Boundary Scaling**: Wandering boundaries automatically adapt to any window size, ensuring pugs never wander outside of view when the game window is small or resized.
 
 ---
 

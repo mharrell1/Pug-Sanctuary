@@ -37,6 +37,12 @@ class BathMiniGame {
     this.bubbleImg.src = 'assets/items/bubble.png';
 
     this.initEvents();
+
+    window.addEventListener('resize', () => {
+      if (this.active) {
+        this.initCanvas();
+      }
+    });
   }
 
   initCanvas() {
@@ -66,6 +72,34 @@ class BathMiniGame {
     });
 
     window.addEventListener('mouseup', () => {
+      this.isDragging = false;
+    });
+
+    // Touch event support for mobile bath mini-game
+    this.wrapper.addEventListener('touchstart', (e) => {
+      if (!this.active || e.touches.length === 0) return;
+      this.isDragging = true;
+      const touch = e.touches[0];
+      const rect = this.wrapper.getBoundingClientRect();
+      this.mouseX = touch.clientX - rect.left;
+      this.mouseY = touch.clientY - rect.top;
+      this.applyToolAction();
+      e.preventDefault();
+    }, { passive: false });
+
+    this.wrapper.addEventListener('touchmove', (e) => {
+      if (!this.active || e.touches.length === 0) return;
+      const touch = e.touches[0];
+      const rect = this.wrapper.getBoundingClientRect();
+      this.mouseX = touch.clientX - rect.left;
+      this.mouseY = touch.clientY - rect.top;
+      if (this.isDragging) {
+        this.applyToolAction();
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
       this.isDragging = false;
     });
   }

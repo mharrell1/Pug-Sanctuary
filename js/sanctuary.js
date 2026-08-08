@@ -102,12 +102,26 @@ class PugEntity {
   }
 
   updateSpriteSrc() {
-    if (this.basePose === 'moku_3' && this.happiness >= 100) {
-      this.pose = 'moku_3_smiling';
-      if (this.nameBadge) this.nameBadge.classList.add('happy');
-    } else if (this.basePose === 'moku_3') {
-      this.pose = 'moku_3';
-      if (this.nameBadge) this.nameBadge.classList.remove('happy');
+    let nextPose = this.basePose || 'moku_1';
+    const hasSad = ['kaleo_8', 'kaleo_9', 'kaleo_16'].includes(this.basePose);
+    const hasSmiling = ['kaleo_8', 'kaleo_9', 'moku_3'].includes(this.basePose);
+
+    if (this.happiness < 50 && hasSad) {
+      nextPose = `${this.basePose}_sad`;
+    } else if (this.happiness >= 80 && hasSmiling) {
+      nextPose = `${this.basePose}_smiling`;
+    } else {
+      nextPose = this.basePose;
+    }
+
+    this.pose = nextPose;
+
+    if (this.nameBadge) {
+      if (this.happiness >= 80) {
+        this.nameBadge.classList.add('happy');
+      } else {
+        this.nameBadge.classList.remove('happy');
+      }
     }
 
     const src = `assets/pugs/${this.pose || 'moku_1'}.png`;
@@ -275,11 +289,9 @@ class SanctuaryEngine {
       if (this.activeTool === 'BOWL') {
         const activeFood = window.app && window.app.activeFood ? window.app.activeFood : 'kibble';
         this.addFoodBowl(clickX, clickY, activeFood);
-        this.deactivateTool();
       } else if (this.activeTool === 'TOY') {
         const activeToy = window.app && window.app.activeToy ? window.app.activeToy : 'rubber_duck';
         this.addToy(clickX, clickY, activeToy);
-        this.deactivateTool();
       }
     });
 
@@ -336,6 +348,67 @@ class SanctuaryEngine {
     });
 
     document.addEventListener('mouseup', () => {
+      if (isDragging || isScaling) {
+        isDragging = false;
+        isScaling = false;
+        if (window.app && window.app.saveGame) window.app.saveGame();
+      }
+    });
+
+    // Touch support for furniture drag & scaling
+    this.wrapper.addEventListener('touchstart', (e) => {
+      if (this.activeFurniture && e.touches.length > 0) {
+        const touch = e.touches[0];
+        if (e.target.classList.contains('edit-handle')) {
+          isScaling = true;
+          initialScale = this.activeFurniture.scale;
+          initialMouseY = touch.clientY;
+          e.stopPropagation();
+          e.preventDefault();
+          return;
+        }
+        
+        if (e.target === this.activeFurniture.el || this.activeFurniture.el.contains(e.target)) {
+          if (!e.target.classList.contains('edit-action-btn')) {
+            isDragging = true;
+            const rect = this.activeFurniture.el.getBoundingClientRect();
+            dragOffsetX = touch.clientX - rect.left;
+            dragOffsetY = touch.clientY - rect.top;
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        }
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 0) return;
+      const touch = e.touches[0];
+      if (isScaling && this.activeFurniture) {
+        const deltaY = initialMouseY - touch.clientY; 
+        const newScale = Math.max(0.5, Math.min(3.5, initialScale + deltaY * 0.015));
+        this.activeFurniture.scale = newScale;
+        this.activeFurniture.updateTransform();
+        e.preventDefault();
+      }
+      else if (isDragging && this.activeFurniture) {
+        const wrapperRect = this.wrapper.getBoundingClientRect();
+        let newX = touch.clientX - wrapperRect.left - dragOffsetX;
+        let newY = touch.clientY - wrapperRect.top - dragOffsetY;
+        
+        newX = Math.max(0, Math.min(newX, this.stageWidth - 50));
+        newY = Math.max(0, Math.min(newY, this.stageHeight - 50));
+        
+        this.activeFurniture.x = newX;
+        this.activeFurniture.y = newY;
+        this.activeFurniture.el.style.left = newX + 'px';
+        this.activeFurniture.el.style.top = newY + 'px';
+        this.activeFurniture.el.style.zIndex = Math.floor(newY);
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
       if (isDragging || isScaling) {
         isDragging = false;
         isScaling = false;
@@ -625,7 +698,11 @@ class SanctuaryEngine {
   }
 
   update(dt) {
+    const currentWidth = this.stageWidth;
+    const currentHeight = this.stageHeight;
     this.pugs.forEach(pug => {
+      pug.stageWidth = currentWidth;
+      pug.stageHeight = currentHeight;
       pug.update(dt, this.foodItems, this.toyItems);
 
       this.foodItems.forEach((food, fIdx) => {
@@ -643,10 +720,7 @@ class SanctuaryEngine {
           }
           
           pug.feed(hungerBoost);
-          if (moodBoost > 0) pug.pet(); // pet() restores mood, wait, does pet() take an amount? 
-          // Let's just adjust mood directly since feed() doesn't do mood.
-          // Wait, pug.pet() restores some mood. Let's just call pug.pet() twice if smoothie.
-          // Actually, let's just set pug.mood = Math.min(100, pug.mood + moodBoost);
+          if (moodBoost > 0) pug.pet();
           pug.mood = Math.min(100, pug.mood + moodBoost);
           
           this.spawnParticle(pug.x, pug.y - 40, `+${food.name || 'Food'}`, 'coin');
@@ -655,6 +729,42 @@ class SanctuaryEngine {
         }
       });
     });
+
+    // Separation / collision avoidance logic for pugs
+    const minDistance = 75;
+    for (let i = 0; i < this.pugs.length; i++) {
+      for (let j = i + 1; j < this.pugs.length; j++) {
+        const pugA = this.pugs[i];
+        const pugB = this.pugs[j];
+        const dx = pugB.x - pugA.x;
+        const dy = pugB.y - pugA.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDistance) {
+          const overlap = minDistance - dist;
+          const angle = dist > 0 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
+          const forceX = Math.cos(angle) * overlap * 0.5;
+          const forceY = Math.sin(angle) * overlap * 0.5;
+          
+          pugA.x -= forceX;
+          pugA.y -= forceY;
+          pugB.x += forceX;
+          pugB.y += forceY;
+          
+          // Hard clamp
+          const padX = 50, padRight = 90, padTop = 130, padBottom = 90;
+          pugA.x = Math.max(padX, Math.min(pugA.x, pugA.stageWidth - padRight));
+          pugA.y = Math.max(padTop, Math.min(pugA.y, pugA.stageHeight - padBottom));
+          pugB.x = Math.max(padX, Math.min(pugB.x, pugB.stageWidth - padRight));
+          pugB.y = Math.max(padTop, Math.min(pugB.y, pugB.stageHeight - padBottom));
+          
+          // Update transform and zIndex
+          pugA.element.style.transform = `translate3d(${pugA.x}px, ${pugA.y + pugA.yBob}px, 0)`;
+          pugA.element.style.zIndex = Math.floor(pugA.y) + 1000;
+          pugB.element.style.transform = `translate3d(${pugB.x}px, ${pugB.y + pugB.yBob}px, 0)`;
+          pugB.element.style.zIndex = Math.floor(pugB.y) + 1000;
+        }
+      }
+    }
   }
 }
 

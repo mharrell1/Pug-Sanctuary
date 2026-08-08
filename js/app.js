@@ -412,7 +412,6 @@ class PugSanctuaryApp {
             const ry = 180 + Math.random() * 180;
             this.sanctuary.addFurniture(rx, ry, itemId);
             this.showNotification(`PLACED ${shopItem.name} ON GRASS FIELD!`);
-            document.getElementById('inventory-modal').classList.remove('active');
             this.saveState();
           } else if (cat === 'food') {
             this.activeFood = itemId;
@@ -465,13 +464,8 @@ class PugSanctuaryApp {
 
       // Dog Bed with color picker
       if (item.colors) {
-        const ownedColors = item.colors.filter(c =>
-          this.inventory[category] && this.inventory[category].includes(c.id)
-        );
-        const allOwned = ownedColors.length === item.colors.length;
-
-        // Determine preview color
         const previewColor = item.colors[0];
+        card.dataset.selectedColorId = previewColor.id;
 
         card.innerHTML = `
           <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; width: 100%;">
@@ -479,14 +473,67 @@ class PugSanctuaryApp {
             <img src="assets/items/${previewColor.id}.png?v=1" style="width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated;" onerror="this.style.display='none'">
             <div class="shop-item-desc">${item.desc}</div>
             <div class="bed-color-swatches" style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:2px;">
-              ${item.colors.map(c => {
+              ${item.colors.map((c, idx) => {
                 const owned = this.inventory[category] && this.inventory[category].includes(c.id);
-                return `<div class="bed-swatch ${owned ? 'owned' : ''}" data-color-id="${c.id}" title="${c.label}" style="width:18px;height:18px;border-radius:50%;background:${c.swatch};border:2px solid ${owned ? '#00cc44' : '#000'};cursor:pointer;position:relative;" ></div>`;
+                const isSelected = idx === 0;
+                const borderStyle = isSelected ? 'border: 2px solid #ff007f; box-shadow: 0 0 0 2px #fff;' : `border: 2px solid ${owned ? '#00cc44' : '#000'};`;
+                return `<div class="bed-swatch ${owned ? 'owned' : ''} ${isSelected ? 'selected' : ''}" data-color-id="${c.id}" title="${c.label}" style="width:18px;height:18px;border-radius:50%;background:${c.swatch};${borderStyle}cursor:pointer;position:relative;" ></div>`;
               }).join('')}
             </div>
-            <div class="bed-color-label" style="font-size:9px;color:#666;">CLICK A COLOR TO BUY (${item.price} P$ EA)</div>
+            <div class="bed-color-label" style="font-size:9px;color:#666;text-transform:uppercase;">COLOR: ${previewColor.label}</div>
+          </div>
+          <div class="bed-purchase-container" style="display: flex; flex-direction: column; justify-content: flex-end; width: 100%; margin-top: 8px;">
           </div>
         `;
+
+        const updateBedCardBuyArea = () => {
+          const selectedColorId = card.dataset.selectedColorId;
+          const colorInfo = item.colors.find(c => c.id === selectedColorId);
+          const alreadyOwned = this.inventory[category] && this.inventory[category].includes(selectedColorId);
+          const purchaseContainer = card.querySelector('.bed-purchase-container');
+          if (!purchaseContainer) return;
+
+          if (alreadyOwned) {
+            purchaseContainer.innerHTML = `
+              <div style="font-size: 9px; color: var(--accent-green); text-align: center; margin-top: 4px; font-weight: bold;">OWNED</div>
+            `;
+          } else {
+            purchaseContainer.innerHTML = `
+              <div class="shop-item-price" style="text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 4px;">${item.price} P$</div>
+              <button class="tool-btn buy-bed-btn" style="width: 100%; font-size: 9px;" ${isLocked ? 'disabled' : ''}>
+                ${isLocked ? `UNLOCKS AT LVL ${item.minLevel}` : 'BUY ITEM'}
+              </button>
+            `;
+            const buyBtn = purchaseContainer.querySelector('.buy-bed-btn');
+            if (buyBtn && !isLocked) {
+              buyBtn.addEventListener('click', () => {
+                if (this.coins < item.price) {
+                  this.showNotification("NOT ENOUGH PUGBUCKS!");
+                  return;
+                }
+                this.coins -= item.price;
+                this.updateStatusHeader();
+                if (window.sfx) window.sfx.playCoin();
+                this.inventory[category].push(selectedColorId);
+                this.showNotification(`UNLOCKED ${colorInfo.label.toUpperCase()} DOG BED!`);
+                this.saveState();
+                
+                // Mark swatch as owned in UI
+                card.querySelectorAll('.bed-swatch').forEach(sw => {
+                  if (sw.dataset.colorId === selectedColorId) {
+                    sw.classList.add('owned');
+                  }
+                });
+                
+                updateBedCardBuyArea();
+
+                if (document.getElementById('inventory-modal')?.classList.contains('active')) {
+                  this.renderInventory();
+                }
+              });
+            }
+          }
+        };
 
         // Swatch click handlers
         card.querySelectorAll('.bed-swatch').forEach(swatch => {
@@ -495,33 +542,31 @@ class PugSanctuaryApp {
             const colorId = swatch.dataset.colorId;
             const colorInfo = item.colors.find(c => c.id === colorId);
             if (!colorInfo) return;
-            const alreadyOwned = this.inventory[category] && this.inventory[category].includes(colorId);
-            if (alreadyOwned) {
-              this.showNotification(`${colorInfo.label.toUpperCase()} BED ALREADY OWNED!`);
-              return;
-            }
-            if (this.coins < item.price) {
-              this.showNotification('NOT ENOUGH PUGBUCKS!');
-              return;
-            }
-            // Update preview image
+
+            card.dataset.selectedColorId = colorId;
             const previewImg = card.querySelector('img');
             if (previewImg) previewImg.src = `assets/items/${colorId}.png?v=1`;
-            // Buy this color
-            this.coins -= item.price;
-            this.updateStatusHeader();
-            if (window.sfx) window.sfx.playCoin();
-            this.inventory[category].push(colorId);
-            swatch.style.border = '2px solid #00cc44';
-            swatch.classList.add('owned');
-            this.showNotification(`UNLOCKED ${colorInfo.label.toUpperCase()} DOG BED!`);
-            this.saveState();
-            if (document.getElementById('inventory-modal')?.classList.contains('active')) {
-              this.renderInventory();
-            }
+
+            const colorLabel = card.querySelector('.bed-color-label');
+            if (colorLabel) colorLabel.innerText = `COLOR: ${colorInfo.label.toUpperCase()}`;
+
+            // Update styles of swatches to show selection
+            card.querySelectorAll('.bed-swatch').forEach(sw => {
+              const owned = this.inventory[category] && this.inventory[category].includes(sw.dataset.colorId);
+              const isSel = sw.dataset.colorId === colorId;
+              if (isSel) {
+                sw.style.cssText = `width:18px;height:18px;border-radius:50%;background:${sw.style.backgroundColor};border:2px solid #ff007f;box-shadow:0 0 0 2px #fff;cursor:pointer;position:relative;`;
+              } else {
+                sw.style.cssText = `width:18px;height:18px;border-radius:50%;background:${sw.style.backgroundColor};border:2px solid ${owned ? '#00cc44' : '#000'};cursor:pointer;position:relative;`;
+              }
+            });
+
+            updateBedCardBuyArea();
+            if (window.sfx) window.sfx.playClick();
           });
         });
 
+        updateBedCardBuyArea();
         container.appendChild(card);
         return;
       }

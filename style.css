@@ -36,16 +36,19 @@ body {
   font-family: var(--pixel-font-body);
   color: var(--text-main);
   min-height: 100vh;
+  max-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Y2K Window Container */
 .y2k-window {
   width: 980px;
   max-width: 98vw;
+  height: 96vh;
+  max-height: 800px;
   background: var(--win-bg);
   border-top: 3px solid var(--win-border-light);
   border-left: 3px solid var(--win-border-light);
@@ -216,14 +219,19 @@ body {
 }
 
 .tab-content.active {
-  display: block;
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* Sanctuary View Area */
 .sanctuary-stage-wrapper {
   position: relative;
   width: 100%;
-  height: 480px;
+  height: auto;
+  flex: 1;
+  min-height: 200px;
   background-image: url('assets/backgrounds/grass.png');
   background-size: cover;
   background-position: center bottom;
@@ -474,6 +482,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -503,6 +514,9 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .pug-select-card {
@@ -533,12 +547,12 @@ body {
   font-weight: bold;
 }
 
-/* Shop Catalog Grid */
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
-  max-height: 360px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -807,4 +821,118 @@ body {
 .edit-btn-rotate:hover {
   background: #00bcd4;
   color: white;
+}
+
+/* Large Modal Class for Desktop */
+.modal-window.large-modal {
+  width: 920px;
+  max-width: 95vw;
+}
+
+/* Tab content active flex scaling */
+.tab-content.active {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* iPhone & Mobile & Snapped Window Viewport Media Queries */
+@media (max-width: 1024px) {
+  body {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .y2k-window {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  /* Force stage to stretch to fill height and allow shrink */
+  .sanctuary-stage-wrapper {
+    height: auto;
+    flex: 1;
+    min-height: 180px;
+  }
+
+  /* Shop layout grid adjustment for smaller screens */
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    max-height: calc(100vh - 180px);
+  }
+
+  /* Make adopt templates selection grid display nicely */
+  .pug-select-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pug-select-card img {
+    width: 55px;
+    height: 55px;
+  }
+
+  /* Modals sizing */
+  .modal-window {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 95vh;
+  }
+
+  .modal-window.large-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh;
+    max-height: 100vh;
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  /* Sizing adjustments for mini-game wrappers */
+  .bath-stage-wrapper, .walk-stage-wrapper {
+    height: auto;
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .bath-canvas, .walk-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Adjust status bar wrap on tiny screens */
+  .sanctuary-status-bar {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .status-group {
+    gap: 4px;
+  }
+
+  .volume-slider-group {
+    display: none !important; /* Hide volume controls on phone to save space */
+  }
+
+  /* Toolbar styling for small screens */
+  .sanctuary-toolbar {
+    gap: 4px;
+    padding: 4px;
+    justify-content: center;
+  }
+
+  .tool-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
 }

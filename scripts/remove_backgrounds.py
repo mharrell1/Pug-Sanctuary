@@ -6,10 +6,37 @@ os.makedirs('assets/backgrounds', exist_ok=True)
 os.makedirs('assets/items', exist_ok=True)
 
 targets = {
-    'Moku Standing #1.png': 'assets/pugs/moku_1.png',
-    'Moku Standing #2.png': 'assets/pugs/moku_2.png',
-    'Moku Standing #3.png': 'assets/pugs/moku_3.png',
-    'Moku Standing #3 (Smiling).png': 'assets/pugs/moku_3_smiling.png'
+    'pugs/Moku Standing #1.png': 'assets/pugs/moku_1.png',
+    'pugs/Moku Standing #2 (Blue Harness) .png': 'assets/pugs/moku_2.png',
+    'pugs/Moku Standing #3 (Blue Harness).png': 'assets/pugs/moku_3.png',
+    'pugs/Moku Standing #3 (Blue Harness Smiling).png': 'assets/pugs/moku_3_smiling.png',
+    'pugs/Moku Standing #4 (Red Harness).png': 'assets/pugs/moku_4.png',
+    'pugs/Kaleo Standing #1.png': 'assets/pugs/kaleo_1.png',
+    'pugs/Kaleo Standing #2 (Tan Collar).png': 'assets/pugs/kaleo_2.png',
+    'pugs/Kaleo Standing #3 (Puppy).png': 'assets/pugs/kaleo_3.png',
+    'pugs/Kaleo Standing #4 (Referee).png': 'assets/pugs/kaleo_4.png',
+    'pugs/Kaleo Standing #5 (Skeleton).png': 'assets/pugs/kaleo_5.png',
+    'pugs/Kaleo Standing #6 (Light Up Harness).png': 'assets/pugs/kaleo_6.png',
+    'pugs/Kaleo Standing #7 (Backpack).png': 'assets/pugs/kaleo_7.png',
+    'pugs/Kaleo Standing #8 (Red Harness).png': 'assets/pugs/kaleo_8.png',
+    'pugs/Kaleo Standing #8 (Red Harness Sad).png': 'assets/pugs/kaleo_8_sad.png',
+    'pugs/Kaleo Standing #8 (Red Harness Smiling).png': 'assets/pugs/kaleo_8_smiling.png',
+    'pugs/Kaleo Standing #9 (Tan Harness).png': 'assets/pugs/kaleo_9.png',
+    'pugs/Kaleo Standing #9 (Tan Harness Sad).png': 'assets/pugs/kaleo_9_sad.png',
+    'pugs/Kaleo Standing #9 (Tan Harness Smiling).png': 'assets/pugs/kaleo_9_smiling.png',
+    'pugs/Kaleo Standing #10 (Tan Harness).png': 'assets/pugs/kaleo_10.png',
+    'pugs/Kaleo Standing #11 (Police Officer).png': 'assets/pugs/kaleo_11.png',
+    'pugs/Kaleo Standing #12 (Christmas).png': 'assets/pugs/kaleo_12.png',
+    'pugs/Kaleo Standing #13 (Bee).png': 'assets/pugs/kaleo_13.png',
+    'pugs/Kaleo Standing #14 (Red Harness).png': 'assets/pugs/kaleo_14.png',
+    'pugs/Kaleo Standing #14 (Red Harness Walking).png': 'assets/pugs/kaleo_14_walking.png',
+    'pugs/Kaleo Standing #15 (Black Harness).png': 'assets/pugs/kaleo_15.png',
+    'pugs/Kaleo Standing #16 (Tan Harness).png': 'assets/pugs/kaleo_16.png',
+    'pugs/Kaleo Standing #16 (Tan Harness Sad).png': 'assets/pugs/kaleo_16_sad.png',
+    'pugs/Kaleo Standing #17 (Pirate).png': 'assets/pugs/kaleo_17.png',
+    'pugs/Kaleo Standing #18 (Shark).png': 'assets/pugs/kaleo_18.png',
+    'pugs/Kaleo Standing #19 (Moose).png': 'assets/pugs/kaleo_19.png',
+    'pugs/Kaleo Standing #20 (Stick).png': 'assets/pugs/kaleo_20.png'
 }
 
 def remove_exact_bg(img, color_tolerance=8):

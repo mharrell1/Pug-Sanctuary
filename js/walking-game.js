@@ -45,6 +45,12 @@ class WalkingMiniGame {
     this.initCanvas();
     this.initEvents();
     this.loadAssets();
+
+    window.addEventListener('resize', () => {
+      if (this.active) {
+        this.initCanvas();
+      }
+    });
   }
 
   initCanvas() {
@@ -82,6 +88,44 @@ class WalkingMiniGame {
     };
     document.addEventListener('keydown', this._onKeyDown);
     document.addEventListener('keyup',   this._onKeyUp);
+
+    // Touch controls for mobile walking mini-game (up/down tapping)
+    if (this.wrapper) {
+      this.wrapper.addEventListener('touchstart', (e) => {
+        if (!this.active || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const rect = this.wrapper.getBoundingClientRect();
+        const relativeY = touch.clientY - rect.top;
+        if (relativeY < rect.height / 2) {
+          this._upHeld = true;
+          this._downHeld = false;
+        } else {
+          this._upHeld = false;
+          this._downHeld = true;
+        }
+        e.preventDefault();
+      }, { passive: false });
+
+      this.wrapper.addEventListener('touchmove', (e) => {
+        if (!this.active || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const rect = this.wrapper.getBoundingClientRect();
+        const relativeY = touch.clientY - rect.top;
+        if (relativeY < rect.height / 2) {
+          this._upHeld = true;
+          this._downHeld = false;
+        } else {
+          this._upHeld = false;
+          this._downHeld = true;
+        }
+        e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('touchend', () => {
+        this._upHeld = false;
+        this._downHeld = false;
+      });
+    }
   }
 
   startWalk(pug) {
@@ -110,8 +154,15 @@ class WalkingMiniGame {
     this.walkCycle = 0;
     this.pugBob    = 0;
 
+    let spritePose = pug.pose;
+    if (pug.basePose === 'kaleo_9' || pug.pose.startsWith('kaleo_9')) {
+      spritePose = 'kaleo_10';
+    } else if (['kaleo_8', 'kaleo_14'].includes(pug.basePose) || pug.pose.startsWith('kaleo_8') || pug.pose.startsWith('kaleo_14')) {
+      spritePose = 'kaleo_14_walking';
+    }
+
     this.pugImg = new Image();
-    this.pugImg.src = `assets/pugs/${pug.pose}.png?v=` + Date.now();
+    this.pugImg.src = `assets/pugs/${spritePose}.png?v=` + Date.now();
 
     document.getElementById('walk-modal').classList.add('active');
     if (window.app) window.app.showNotification('UP / DOWN ARROWS TO COLLECT BONES!');
